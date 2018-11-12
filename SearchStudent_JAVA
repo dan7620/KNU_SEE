@@ -1,0 +1,68 @@
+import java.io.*;
+import java.util.*;
+
+class Student implements java.io.Serializable { //직렬화 부분 
+	int no;
+	String name;
+	double score;
+	public Student(int no, String name, double score) {
+		this.name = name ;
+		this.no = no;
+		this.score = score;
+	}
+	
+	public String toString() {
+		return "번호 : " + no + " 이름 : " + name + " 학점" + score ;
+	}
+}
+
+public class _직렬화Students {
+	public static void main(String[] args) throws IOException {
+		ObjectInputStream in=null;
+		ObjectOutputStream out=null;
+		
+		Student[] ob = new Student[2];
+		
+		for(int i = 0 ; i<ob.length ; i++) {
+			
+			Scanner scan = new Scanner(System.in);
+			System.out.println((i+1) + "번째 학생의 이름을 입력하세요 : ");
+			String scan_name = scan.next();
+			System.out.println((i+1) + "번째 학생의 학점을 입력하세요 : ");
+			Double scan_score = scan.nextDouble();
+	
+			ob[i] = new Student( i+1 , scan_name, scan_score );
+
+		}
+
+		
+		    
+		System.out.println("검색할 학번 : ");
+		Scanner scan_1 = new Scanner(System.in);
+		int findno = scan_1.nextInt();
+		
+		
+		try { out = new ObjectOutputStream(new FileOutputStream("st.dat"));
+			  out.writeObject(ob[findno-1]);
+			  
+			  out.flush();
+			  in = new ObjectInputStream(new FileInputStream("st.dat"));
+			  Student s = (Student) in.readObject();
+			  System.out.println(s);
+		} catch (ClassNotFoundException e) 
+		
+		
+		
+		{
+			
+		} finally {
+			if (in != null)
+				in.close();
+			if (out != null) 
+				out.close();
+		
+		}
+		
+		}
+	}
+
