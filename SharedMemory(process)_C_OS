@@ -1,0 +1,71 @@
+
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/wait.h>
+#include <sys/stat.h>
+#include <sys/shm.h>
+#include <sys/types.h>
+#include <fcntl.h>
+
+#define KEY   5678
+#define PERMS 0660
+
+int myCal(int a, int b, int c, int d, int e, int f) {
+    int id;
+    int *ptr;
+
+    id = shmget(KEY, 3*sizeof(int), IPC_CREAT | PERMS); //Create shared memory
+
+    if (fork() == 0){
+        // P1
+        if (fork() == 0){
+        ptr = (int *) shmat(id, NULL, 0);
+
+        ptr[0] = a + b ;
+        printf("Process 1                 (a+b) = %d\n\n", a+b);
+
+        exit(0);
+
+        }
+
+        else
+        //P2
+        wait(NULL);
+        ptr = (int *) shmat(id, NULL, 0);
+
+        ptr[1] = c - d ;
+        printf("Process 2_1               (c-d) = %d\n\n", ptr[1]);
+
+        ptr[1] *= ptr[0] ;
+        printf("Process 2_2       [(a+b)*(c-d)] = %d\n\n", ptr[1]);
+
+        exit(0);
+
+        }
+
+    else
+        // P3
+        wait(NULL);
+
+        ptr = (int *) shmat(id, NULL, 0);
+
+        ptr[2] = e + f ;
+        printf("Process 3_1               (e+f) = %d\n\n", ptr[2]);
+
+        ptr[2] += ptr[1] ;
+        printf("Process 3_2 [(a+b)*(c-d)+(e+f)] = %d\n\n", ptr[2]);
+
+
+        shmctl(id, IPC_RMID, NULL);
+
+}
+
+
+int main() { myCal(1,2,3,4,5,6); }
+//Test
+
+
+
