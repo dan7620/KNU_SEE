@@ -1,0 +1,128 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+// 1 slot = 1 byte (1 char in my C implementation)
+
+// not handling all errors in this code
+
+#define PAGESZ 128
+#define PHYSSZ 16384
+#define LOGSZ 32768
+#define NBRPAGES LOGSZ/PAGESZ
+#define NBRFRAMES PHYSSZ/PAGESZ
+
+char physMem[PHYSSZ];
+char logMemStat[LOGSZ]; // bit vector for finding empty slots in logical memory
+char physMemStat[NBRFRAMES]; // bit vector for finding empty frames
+char pageTbl[NBRPAGES]; // paging table
+
+// initialize data structures for managing memory
+void initMem()
+{
+  int i;
+
+  for (i = 0; i < LOGSZ; i++)
+    logMemStat[i] = 0; // unused
+
+  for (i = 0; i < NBRFRAMES; i++)
+    physMemStat[i] = 0; // unused
+
+  for (i = 0; i < NBRPAGES; i++)
+    pageTbl[i] = -1; // unused
+
+}
+
+
+// allocate nb slots and return @ of 1st slot if successful, otherwise -1
+int allocate(int nb)
+{
+  // 1- find free contiguous slots
+  int retAddress, i, nbContigSlots = 0;
+
+  for (i = 0; i < LOGSZ && nbContigSlots < nb; i++) {
+    if (logMemStat[i] == 0) {
+      nbContigSlots++;
+
+      if (nbContigSlots == 1) // 1st empty slot
+	retAddress = i;
+    } else
+      nbContigSlots = 0; // start searching again
+
+    }
+
+  if (nbContigSlots == nb) { // successful
+    // update the bit vector for the allocated slots
+    for (i = retAddress; i < retAddress + nb; i++)
+      logMemStat[i] = 1; // slot i used
+
+
+    // 2- for every page used and unassigned to a frame, find a free frame and update page table
+    int firstPage, lastPage;
+
+    firstPage = retAddress/PAGESZ;
+    lastPage = (retAddress+nb-1)/PAGESZ;
+
+    printf("firstpage = %d lastpage = %d \n", firstPage, lastPage);
+
+    int j = NBRFRAMES - 1;
+    for (i = firstPage; i <= lastPage; i++) {
+
+      if (pageTbl[i] == -1) {
+	// find free frame
+	for (; j >= 0 && physMemStat[j] == 1; j--);
+
+	if (j >= 0) {
+	  printf("\tpage %d -> frame %d\n", i, j);
+	  physMemStat[j] = 1;
+	  pageTbl[i] = j;
+	}
+
+      }
+
+
+    }
+
+
+
+
+  } else
+    // allocation failed
+    retAddress = -1;
+
+
+  // return @ of 1st slot
+  return retAddress;
+
+}
+
+unsigned char read(int addr)
+{
+  return physMem[pageTbl[addr/PAGESZ]*PAGESZ + addr%PAGESZ];
+}
+
+
+int write(int addr, unsigned char val)
+{
+  physMem[pageTbl[addr/PAGESZ]*PAGESZ + addr%PAGESZ] = val;
+}
+
+int main()
+{
+  int tab1, tab2, tab3;
+  initMem();
+
+  printf("allocate(3) = %d\n", (tab1 = allocate(3)));
+  printf("allocate(5) = %d\n", (tab2 = allocate(5)));
+  printf("allocate(7) = %d\n", (tab3 = allocate(7)));
+  printf("allocate(50000) = %d\n", allocate(5000));
+
+  write(tab1, 77);
+  write(tab1+2, 79);
+  write(tab3+50, 234);
+
+  printf("@%d = %d\n", tab1, read(tab1));
+  printf("@%d = %d\n", tab1+2, read(tab1+2));
+  printf("@%d = %d\n", tab3+50, read(tab3+50));
+
+
+}
