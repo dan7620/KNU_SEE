@@ -1,0 +1,80 @@
+
+#! /bin/bash
+
+select option in List_Process Search_for_a_process display_files_in_a_folder search_file change_file_permission change_folder_permission open_file exit; do
+case $REPLY in
+
+1)     echo " "
+       ps aux
+       echo " "
+;;
+
+2)
+    echo " "
+    echo "search what?"
+    read pcss
+    echo " "
+    ps aux|grep $pcss
+    echo " "
+;;
+
+3)
+    echo " "
+    ls -l|more
+    echo " "
+;;
+
+4)
+    echo " "
+    echo "find what?"
+    read filenum
+    echo " "
+    which $filenum
+    echo " "
+;;
+
+5)
+    echo " "
+    echo "change what file?"
+    read chfn
+    echo "user permission? write +- r/w/x"
+    read flus
+    echo "group permission? write +- r/w/x"
+    read flgp
+    echo "other permission? write +- r/w/x"
+    read flot
+    chmod u$flus g$flgp o$flot $chfn
+    echo "file permission changed"
+    echo " "
+;;
+
+6) 
+    echo " "
+    echo "change what folder?"
+    read chfoldername
+    echo "user permission? write +- r/w/x"
+    read fdus
+    echo "group permission? write +- r/w/x"
+    read fdgp
+    echo "other permission? write +- r/w/x"
+    read fdot
+    chmod u$fdus g$fdgp o$fdot $chfoldername
+    echo "folder permission changed"
+    echo " "
+;;
+
+7)
+    echo " "
+    echo "open what?"
+    read openfilename
+    emacs $openfilename
+    echo " "
+;;
+
+8)
+	exit
+;;
+
+*) echo "by default"
+esac
+done
