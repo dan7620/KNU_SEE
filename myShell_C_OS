@@ -1,0 +1,48 @@
+
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/wait.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <fcntl.h>
+
+
+int main() {
+  int choice;
+  int fd;
+  char buf[2048];
+  uid_t owner;
+  gid_t group;
+
+  do{
+    printf("1.Create a file \n2.Read a file \n3.Change file permission \n");
+    printf("4.Change file owner \n5.Create a directory \n");
+    printf("6.Remove a directory \n7.Create a symlink \n8.Read a symbolic link \n");
+    printf("9.Change directory \n10.Rename a file \n11.Move a file \n12.Remove a file\n\n\n ");
+    scanf("%d", &choice);
+
+    switch(choice) {
+    case 1 : fd=open("f" , O_CREAT , 0700); printf("fd is %d",fd); break;
+    case 2 : fd=open("f" , O_CREAT , 0700);
+             read(fd, buf, 100);
+             printf("buf is %d",buf); break;
+    case 3 : fd=open("f" , O_CREAT , 0700);
+             fchmod(fd, S_IRUSR); printf("mod changed"); break;
+    case 4 : fd=open("f" , O_CREAT , 0700);
+             fchown(fd,owner,group); printf("owner changed"); break;
+    case 5 : mkdir("AZE", 0700); break;
+    case 6 : rmdir("AZE"); break;
+    case 7 : symlink("f" , "f1"); break;
+    case 8 : symlink("f" , "f1");
+             readlink("f1", buf, 512); break;
+ /* case 9 :
+
+    **/
+}}while(choice=="0");
+}
+
+
+
+
