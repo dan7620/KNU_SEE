@@ -1,0 +1,89 @@
+#include <unistd.h>
+#include <stdio.h>
+#include <sys/types.h>
+#include <sys/shm.h>
+#include <sys/wait.h>
+#include <stdlib.h>
+#include <sys/times.h>
+#include <sys/ipc.h>
+#include <sys/sem.h>
+#include <semaphore.h>
+
+int a,b,c,d,e,f,count=0, res[3];
+sem_t s1,s_fin;
+pthread_t th1,th2,th3,th4;
+
+void *T1 (void *args) {
+
+    sem_wait(&s1);
+
+    res[count] = a+b;
+    count++;
+
+    sem_post(&s1);
+    sem_post(&s_fin);
+
+    return NULL;
+}
+
+void *T2 (void *args) {
+
+    sem_wait(&s1);
+
+    res[count] = c-d;
+    count++;
+
+    sem_post(&s1);
+    sem_post(&s_fin);
+
+    return NULL;
+}
+
+void *T3 (void *args) {
+
+    sem_wait(&s1);
+
+    res[count] = e+f;
+    count++;
+
+    sem_post(&s1);
+    sem_post(&s_fin);
+
+    return NULL;
+}
+
+void *T4 (void *args) {
+
+    int tmp;
+
+    sem_wait(&s_fin);
+    sem_wait(&s_fin);
+    tmp=res[0]*res[1];
+
+    sem_wait(&s_fin);
+    tmp*=res[2];
+
+    printf("Final Result is : %d\n",tmp);
+
+    return NULL;
+}
+
+int main(){
+
+    a=6; b=5; c=4; d=3; e=2; f=1;
+
+    sem_init(&s1, 0, 1);
+    sem_init(&s_fin, 0, 0);
+
+    pthread_create(&th1,NULL,T1,NULL);
+    pthread_create(&th2,NULL,T2,NULL);
+    pthread_create(&th3,NULL,T3,NULL);
+    pthread_create(&th4,NULL,T4,NULL);
+
+    pthread_join(th1,NULL);
+    pthread_join(th2,NULL);
+    pthread_join(th3,NULL);
+    pthread_join(th4,NULL);
+
+
+    }
