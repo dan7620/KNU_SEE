@@ -1,953 +1,726 @@
 
+package soju_marble;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
+/*
+ 	* this code is made by SouthKorea student in Kyungpook national university(KNU), so base comment or image is also Korean. 
+ 	* Because of my English Level, translation is little awkward. sorry about it. Think you! 
+ 
+	class : Character 	- Player
+						- AI
+			Slot
+			MainScreen
+			
+ */
 
+// for Player & AI
+// 플레이어와 AI를 위한 기초 클래스
 class Character {
-	String _이름;
-	int _번호;
-	int _위치 = 0;
-	int _마신량;
-	int _무인도 = 0;
+	public String characterName;
+	public int characterNum;
+	public int characterReplace = 0;
+	public int characterDrink;
+	public boolean characterIsIsland = false;
 }
 
+// User class
+// 사용자 클래스
 class Player extends Character {
-	Player(){}
-	Player(String a){
-		this._이름 = a;
+	public Player(String playerName){
+		this.characterName = playerName;
 	}
-	public void SetName(String a) {
-		this._이름 = a;
-	}
-	public void aa() {
-		
+	public void SetName(String playerName) {
+		this.characterName = playerName;
 	}
 }
 
+// AI player class
+// AI 클래스
 class Ai extends Character {
-	public void _첫번째_ai생성() {
-		this._이름 = "AI1";
+	public void firstAICreate() {
+		this.characterName = "AI1";
 	}
-	public void _두번재_ai생성() {
-		this._이름 = "AI2";
+	public void secondAICreate() {
+		this.characterName = "AI2";
 	}
 }
 
-
+// for in-game field
+// 슬롯 클래스
 class Slot {
-	String _벌칙내용 ;
-	int	   _잔추가   ;
+	String penaltyContent;
+	int addGlassNum;
 	
-	public Slot(String _벌칙내용, int _잔추가) {
-		this._벌칙내용 = _벌칙내용 ;
-		this._잔추가 = _잔추가;
+	public Slot(String penaltyContent, int addGlassNum) {
+		this.penaltyContent = penaltyContent ;
+		this.addGlassNum = addGlassNum;
 	}		
 }
 
-
+// JFrame class for GUI
+// GUI 구현을 위한 JFrame 클래스
 @SuppressWarnings("serial")
 class MainScreen extends JFrame {
-	// 필드
-	static int _버튼누른횟수 = 0;
-	static int _플레이어_수;
-	static int _AI_수;
-	static int _게임모드;
-	static boolean tf1 = false, tf2 = false, tf3 = false; // 버튼 눌렸는지 확인용
-	static Boolean nextbuttonset = false; // 다음 버튼 생성지표
-	static String[] _이름 = {null, null, null, null} ;
-	static int[] _주량 = {0, 0, 0, 0};
+	static int BottonPushNum = 0;
+	static int PlayerNum;
+	static int AINum;
+	static int gameMode;
+	// 1 : give-up on,  2 : give-up off		1 : 항복 있음,  2 : 항복 없음
+	static boolean firstButtonFlag = false, secondButtonFlag = false, thirdButtonFlag = false;
+	static boolean nextButtonSetFlag = false;
+	static String[] characterName = {null, null, null, null} ;
+	static int[] characterMaxGlass = {0, 0, 0, 0};
 	
-	static JFrame f = new JFrame();   // 프레임 생성(중요!)
-	static JLabel l = new JLabel();   // 라벨 생성
+	static JLabel mainLabel = new JLabel();   
+	static JButton gameStartButton = new JButton(new ImageIcon("./Image/겜 스타트 버튼.jpg")); // JButton image setting, jButton 이미지 설정
+	static JButton seeRankingButton = new JButton(new ImageIcon("./Image/랭킹 버튼.jpg"));
+	static JButton seehowtoplayImageLabellayButton = new JButton(new ImageIcon("./Image/하우투 플레이 버튼.jpg"));
+	static JButton exitButton = new JButton(new ImageIcon("./Image/종료 버튼.jpg"));
+	static JLabel titleImageLabel = new JLabel(new ImageIcon("./Image/타이틀 1.jpg"));  // JLabel image setting, jLabel 이미지 설정
+	static JLabel bottleImageLabel = new JLabel(new ImageIcon("./Image/병 이미지.jpg"));
+	static JLabel bambooImageLabel = new JLabel(new ImageIcon("./Image/대나무.jpg")); 
+	static JTextField seeRankingErrorTextField = new JTextField("이전 게임이 없습니다");
+	static Font defaultFont = new Font("바탕체",0,45); 
+	static Color defalutBackgroundColor = new Color(83,125,16);
 	
-	//https://blog.naver.com/hotkimchi13/221279151887 참조
-	static JButton b1 = new JButton(new ImageIcon("./Image/겜 스타트 버튼.jpg")); // 버튼 설정
-	static JButton b2 = new JButton(new ImageIcon("./Image/랭킹 버튼.jpg"));
-	static JButton b3 = new JButton(new ImageIcon("./Image/하우투 플레이 버튼.jpg"));
-	static JButton b4 = new JButton(new ImageIcon("./Image/종료 버튼.jpg"));
+	static int turn = 1;
+	static Slot[] Slots = new Slot[12];
+	static int randomNum = 0;
 	
+	static JLabel Gamebord = new JLabel(new ImageIcon("./Image/bord.jpg")); 
+	static JLabel diceImageLabel = new JLabel(new ImageIcon("./Image/굴린주사위2.jpg"));
+	static JLabel diceNumOneLabel = new JLabel(new ImageIcon("./Image/주사위1.jpg"));
+	static JLabel diceNumTwoLabel = new JLabel(new ImageIcon("./Image/주사위2.jpg"));
+	static JLabel diceNumThreeLabel = new JLabel(new ImageIcon("./Image/주사위3.jpg"));
+	static JLabel diceNumFourLabel = new JLabel(new ImageIcon("./Image/주사위4.jpg"));
+	static JLabel diceNumFiveLabel = new JLabel(new ImageIcon("./Image/주사위5.jpg"));
+	static JLabel diceNumSixLabel = new JLabel(new ImageIcon("./Image/주사위6.jpg"));
+	static JLabel player1IconLabel = new JLabel(new ImageIcon("./Image/p1아이콘.jpg"));
+	static JLabel player2IconLabel = new JLabel(new ImageIcon("./Image/p2아이콘.jpg"));
+	static JLabel player3IconLabel = new JLabel(new ImageIcon("./Image/p3아이콘.jpg"));
+	static JLabel player4IconLabel = new JLabel(new ImageIcon("./Image/p4아이콘.jpg"));
+	static JLabel AI1IconLabel = new JLabel(new ImageIcon("./Image/ai1아이콘.jpg"));
+	static JLabel AI2IconLabel = new JLabel(new ImageIcon("./Image/ai2아이콘.jpg"));
+	static JButton diceRollingButton = new JButton(new ImageIcon("./Image/주사위굴리기버튼.jpg"));
+	static JButton giveUpButton = new JButton(new ImageIcon("./Image/항복버튼1.jpg"));
+	static JButton exitButton2 = new JButton(new ImageIcon("./Image/종료 버튼.jpg"));
 	
-	static Font f1 = new Font("바탕체",0,45); // 폰트 생성
-	static Color c1 = new Color(83,125,16);
+	static FileWriter out = null;
+	static FileReader in = null;
 	
-	static JLabel l1 = new JLabel(new ImageIcon("./Image/타이틀 1.jpg")); // 타이틀
-	static JLabel l2 = new JLabel(new ImageIcon("./Image/병 이미지.jpg")); // 병 이미지
-	static JLabel l3 = new JLabel(new ImageIcon("./Image/대나무.jpg")); // 대나무 이미지
-	static JTextField a = new JTextField("이전 게임이 없습니다");
+	public MainScreen() {
 	
-	// 메소드
-	public void seeMainScreen() {
+		setSize(1000, 800); // setting Frame size, 게임 창 크기설정
+		setTitle("주루마블 게임"); // setting Frame name, 게임 이름 설정
+		setLocation(100,100); // setting Frame location in display, 게임 창 뜨는 위치 설정
+		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE); // process end setting,  참 닫히면 프로세스도 종료
+		// if this code if gone, although JFrame end, background process is remind
+		// 이 코드가 없으면, 프로그램이 종료되어도 백그라운드에 프로세서가 종료되지 않음
 	
-		f.setSize(1000, 800); // 게임 창 크기설정
-		f.setTitle("주루마블 게임"); // 게임 이름 설정
-		f.setLocation(100,100); // 게임 창 뜨는 위치 설정
-		f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE); // 참 닫히면 프로세스도 종료
+		mainLabel.setOpaque(true);  // background on setting, 배경화면 사용 설정
+		mainLabel.setBackground(defalutBackgroundColor); // background color setting,  백그라운드 색 지정
 	
-		l.setOpaque(true);  // 라밸 백그라운드 설정
-		l.setBackground(c1); // 백그라운드 색 지정
-		//https://blog.naver.com/highkrs/220544498754 참조
-	
-		b1.setRolloverIcon(new ImageIcon("./Image/겜 스타트 버튼2.jpg")); // 버튼 눌럿을때
-		b1.setBorderPainted(false); // 버튼 테두리 없애기
-		b1.setBounds(350, 300, 280, 80); // 각 버튼 위치 지정
-			b1.addActionListener(new ActionListener() { // 버튼 1 동작 설정
+		titleImageLabel.setBounds(200,50,600,300); // label location setting, label 위치 지정
+		bottleImageLabel.setBounds(730, 350,200, 400);
+		bambooImageLabel.setBounds(1, 280,330, 500);
+		
+		gameStartButton.setRolloverIcon(new ImageIcon("./Image/겜 스타트 버튼2.jpg")); // button RolloverIcon setting, 버튼 눌럿을때 이미지 설정
+		gameStartButton.setBorderPainted(false); // button border setting, 버튼 테두리 없애기
+		gameStartButton.setBounds(350, 300, 280, 80); // location setting, 버튼 위치 설정
+			gameStartButton.addActionListener(new ActionListener() { // button activation setting by ActionListener , 버튼  동작 설정
 				public void actionPerformed(ActionEvent e) {
-					l.setVisible(false);
-					l1.setVisible(false);
-					a.setVisible(false);
-					//l2.setVisible(false);
-					//l3.setVisible(false);
+					mainLabel.setVisible(false);
+					titleImageLabel.setVisible(false);
+					seeRankingErrorTextField.setVisible(false);
 					gameSetting();
 				}
 			});
-			// https://blog.naver.com/hotkimchi13/221280610116 참조
-			b2.setRolloverIcon(new ImageIcon("./Image/랭킹 버튼2.jpg"));
-			b2.setBorderPainted(false);
-		b2.setBounds(380, 400, 220, 80);
-			b2.addActionListener(new ActionListener() { // 버튼 2 동작 설정
+			
+		seeRankingButton.setRolloverIcon(new ImageIcon("./Image/랭킹 버튼2.jpg"));
+		seeRankingButton.setBorderPainted(false);
+		seeRankingButton.setBounds(380, 400, 220, 80);
+			seeRankingButton.addActionListener(new ActionListener() { 
 				public void actionPerformed(ActionEvent e) {
-					l.setVisible(false);
-					l1.setVisible(false);
-					l2.setVisible(false);
-					l3.setVisible(false);
-					a.setVisible(false);
+					mainLabel.setVisible(false);
+					titleImageLabel.setVisible(false);
+					seeRankingErrorTextField.setVisible(false);
 					seeRanking();
 				}
 			});
-			b3.setRolloverIcon(new ImageIcon("./Image/하우투 플레이 버튼2.jpg"));
-			b3.setBorderPainted(false);
-			b3.setBounds(340, 500, 300, 80);
-			b3.addActionListener(new ActionListener() { // 버튼 3 동작 설정
+			seehowtoplayImageLabellayButton.setRolloverIcon(new ImageIcon("./Image/하우투 플레이 버튼2.jpg"));
+			seehowtoplayImageLabellayButton.setBorderPainted(false);
+			seehowtoplayImageLabellayButton.setBounds(340, 500, 300, 80);
+			seehowtoplayImageLabellayButton.addActionListener(new ActionListener() { 
 				public void actionPerformed(ActionEvent e) {
-					l.setVisible(false);
-					l1.setVisible(false);
-					l2.setVisible(false);
-					l3.setVisible(false);
-					a.setVisible(false);
+					mainLabel.setVisible(false);
+					titleImageLabel.setVisible(false);
+					bottleImageLabel.setVisible(false);
+					bambooImageLabel.setVisible(false);
+					seeRankingErrorTextField.setVisible(false);
 					explainGame();
 				}
 			});
-			b4.setRolloverIcon(new ImageIcon("./Image/종료 버튼2.jpg"));
-			b4.setBorderPainted(false);
-			b4.setBounds(425, 600, 125, 70);
-			b4.addActionListener(new ActionListener() { // 버튼 4 동작 설정
+			exitButton.setRolloverIcon(new ImageIcon("./Image/종료 버튼2.jpg"));
+			exitButton.setBorderPainted(false);
+			exitButton.setBounds(425, 600, 125, 70);
+			exitButton.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent e) {
-					System.exit(0); // 프로그램 종료
+					System.exit(0); // program end code, JFrame 프로그램 종료 코드
 				}
 			});
-			l.add(b1);         // 버튼 추가
-			l.add(b2); 
-			l.add(b3);
-			l.add(b4);
-			l.setLayout(null); // 레이아웃 설정
+			
+			mainLabel.add(gameStartButton);  // add buttons at mainLabel, 버튼을 라벨에 추가
+			mainLabel.add(seeRankingButton); 
+			mainLabel.add(seehowtoplayImageLabellayButton);
+			mainLabel.add(exitButton);
 	
-			l1.setBounds(200,50,600,300); // 타이틀, 대나무, 병 위치 지정
-			l2.setBounds(730, 350,200, 400);
-			l3.setBounds(1, 280,330, 500);
-	
-			f.add(l1);
-			f.add(l2);
-			f.add(l3);
-			f.add(l);
-			f.setVisible(true); // 화면에 출력!! 없으면 창 안뜸
+			add(titleImageLabel);	// add labels at Frame, 라벨을 프레임에 추가
+			add(bottleImageLabel);
+			add(bambooImageLabel);
+			add(mainLabel);
+			
+			setVisible(true); 
+			// this code is for output JFrame. if this code is gone, mainFrame is also gone, 화면에 JFrame 출력!! 없으면 창 안뜸
 	}
 	
-
-	// main 화면에서 랭킹보기 클릭시 동작
-	public static void seeRanking() {	// 구현 필요!!!!!!
-		JLabel seeR = new JLabel();
-		seeR.setOpaque(true);
-		seeR.setBackground(c1);
-		FileInputStream	f_stream = null;
+	// seeRanking button activation method, seeRanking 버튼 동작 매소드
+	public void seeRanking() {	
+		JLabel seeRankingMainLabel = new JLabel();
+		JTextField Rank1 = new JTextField();
+		JTextField Rank2 = new JTextField();
+		JTextField Rank3 = new JTextField();
 		
-		Player[] 플레이어저장 = null;
+		seeRankingMainLabel.setOpaque(true);
+		seeRankingMainLabel.setBackground(defalutBackgroundColor);
+		 
+		Player[] playerBuffer = null;
+		int intBuffer;
+		String strBuffer = "";
+		String[] strArrBuffer = null;
 		
-		JButton back = new JButton(new ImageIcon("./Image/백 버튼.jpg"));
+		JButton backButton = new JButton(new ImageIcon("./Image/백 버튼.jpg"));
 		
-		back.setRolloverIcon(new ImageIcon("./Image/백 버튼2.jpg")); // 버튼 눌럿을때
-		back.setBorderPainted(false); // 버튼 테두리 없애기
-		back.setBounds(650, 600, 150, 70); // 각 버튼 위치 지정
-		back.addActionListener(new ActionListener() { // 백 버튼  동작 설정
+		backButton.setRolloverIcon(new ImageIcon("./Image/백 버튼2.jpg")); 
+		backButton.setBorderPainted(false); 
+		backButton.setBounds(400, 600, 150, 70); 
+		backButton.addActionListener(new ActionListener() { 
 			public void actionPerformed(ActionEvent e) {
-				l.setVisible(true);
-				l1.setVisible(true);
-				l2.setVisible(true);
-				l3.setVisible(true);
+				seeRankingMainLabel.setVisible(false);
+				mainLabel.setVisible(true);
+				titleImageLabel.setVisible(true);
 			}
 		});
-		
 		
 		try {
-			
-			f_stream = new FileInputStream("./플레이어_정보_객체.txt");
-			
-			ObjectInputStream d_stream = new ObjectInputStream(f_stream);
-			
-			플레이어저장 = (Player[])d_stream.readObject();
-			
-			switch(플레이어저장.length) {
-			case 1: 
-				JTextField b = new JTextField(플레이어저장[0]._이름+""+플레이어저장[0]._마신량);
-				b.setBounds(200, 200, 600, 100);
-				seeR.add(b);
-				break;
-			case 2: 
-				JTextField c = new JTextField(플레이어저장[0]._이름+""+플레이어저장[0]._마신량+"\n"+플레이어저장[1]._이름+""+플레이어저장[1]._마신량);
-				c.setBounds(200, 200, 600, 100);
-				seeR.add(c);
-				break;
-			case 3: 
-				JTextField d = new JTextField(플레이어저장[0]._이름+""+플레이어저장[0]._마신량+"\n"+플레이어저장[1]._이름+""+플레이어저장[1]._마신량+"\n"+플레이어저장[2]._이름+""+플레이어저장[2]._마신량);
-				d.setBounds(200, 200, 600, 100);
-				seeR.add(d);
-				break;
-			case 4: 
-				JTextField e = new JTextField(플레이어저장[0]._이름+""+플레이어저장[0]._마신량+"\n"+플레이어저장[1]._이름+""+플레이어저장[1]._마신량+"\n"+플레이어저장[2]._이름+""+플레이어저장[2]._마신량+"\n"+플레이어저장[3]._이름+""+플레이어저장[3]._마신량);
-				e.setBounds(200, 200, 600, 100);
-				seeR.add(e);
-				break;
-			default: break;
-			}
-			f_stream.close();
-			d_stream.close();
-			seeR.add(back);
-			f.add(seeR);
+			in = new FileReader("score.txt");
+			while((intBuffer = in.read()) != -1) 
+				strBuffer += (char)intBuffer;
+            in.close();	
+		}catch(IOException e) {
+			System.out.println("IOException");
 		}
-		catch (FileNotFoundException e){
-			l.setVisible(true);
-			l1.setVisible(true);
-			l2.setVisible(true);
-			l3.setVisible(true);
-			a.setBounds(430, 670, 120, 15);
-			l.add(a);
-			seeR.setVisible(false);
-			back.setVisible(false);
-			e.printStackTrace();}
-		catch (IOException e) {
-			JTextField a = new JTextField("이전 게임이 없습니다");
-			l.setVisible(true);
-			l1.setVisible(true);
-			l2.setVisible(true);
-			l3.setVisible(true);
-			a.setBounds(430, 670, 120, 15);
-			l.add(a);
-			seeR.setVisible(false);
-			back.setVisible(false);
-			e.printStackTrace();}
-		catch (ClassNotFoundException e) {
-			JTextField a = new JTextField("이전 게임이 없습니다");
-			l.setVisible(true);
-			l1.setVisible(true);
-			l2.setVisible(true);
-			l3.setVisible(true);
-			a.setBounds(430, 670, 120, 15);
-			l.add(a);
-			seeR.setVisible(false);
-			back.setVisible(false);
-			e.printStackTrace();
+		strArrBuffer = strBuffer.split(" ");
+		playerBuffer = new Player[strArrBuffer.length];
+		for(int i=0;i<strArrBuffer.length;i++) {
+			playerBuffer[i] = new Player(strArrBuffer[i].split(":")[0]);
+			playerBuffer[i].characterDrink = Integer.parseInt(strArrBuffer[i].split(":")[1]);
+		}
+		//for First
+		int buffer1 = 0;
+		int buffer2 = 0;
+		for(int i=0;i<playerBuffer.length;i++) {
+			if(buffer1 < playerBuffer[i].characterDrink) {
+				buffer1 = playerBuffer[i].characterDrink;
+				buffer2 = i;
 			}
-			
+			if(i == (playerBuffer.length-1)) {
+				Rank1.setText("1st : "+playerBuffer[buffer2].characterName + " --- " + Integer.toString(playerBuffer[buffer2].characterDrink)+"잔 마심!");
+				playerBuffer[buffer2].characterDrink = 0;
+				buffer1 = 0;
+				buffer2 = 0;
+			}
+		}
+		// for Second
+		for(int i=0;i<playerBuffer.length;i++) {
+			if(buffer1 <= playerBuffer[i].characterDrink) {
+				buffer1 = playerBuffer[i].characterDrink;
+				buffer2 = i;
+			}
+			if(i == (playerBuffer.length-1)) {
+				Rank2.setText("2nd : "+playerBuffer[buffer2].characterName + " --- " + Integer.toString(playerBuffer[buffer2].characterDrink)+"잔 마심!");
+				playerBuffer[buffer2].characterDrink = 0;
+				buffer1 = 0;
+				buffer2 = 0;
+			}
+		}
+		// for Thrid 
+		for(int i=0;i<playerBuffer.length;i++) {
+			if(buffer1 <= playerBuffer[i].characterDrink) {
+				buffer1 = playerBuffer[i].characterDrink;
+				buffer2 = i;
+			}
+			if(i == (playerBuffer.length-1)) {
+				Rank3.setText("3rd : "+playerBuffer[buffer2].characterName + " --- " + Integer.toString(playerBuffer[buffer2].characterDrink)+"잔 마심!");			}
+		}
+		Rank1.setBounds(210, 200, 570, 70);
+		Rank2.setBounds(210, 350, 570, 70);
+		Rank3.setBounds(210, 500, 570, 70);
+		Rank1.setBackground(Color.WHITE);
+		Rank2.setBackground(Color.WHITE);
+		Rank3.setBackground(Color.WHITE);
+		Rank1.setFont(defaultFont);
+		Rank2.setFont(defaultFont);
+		Rank3.setFont(defaultFont);
+		seeRankingMainLabel.add(Rank1);
+		seeRankingMainLabel.add(Rank2);
+		seeRankingMainLabel.add(Rank3);
+		seeRankingMainLabel.add(backButton);
+		add(seeRankingMainLabel);
+		
 	}
 	
-	// main 화면에서 하우투 플레이 클릭시 동작
-	public static void explainGame() {
-		JLabel HowToP = new JLabel(new ImageIcon("./Image/하우투 플레이 이미지.jpg")); // 하우투 플레이 이미지
-		HowToP.setBounds(1,1,990,790);
-		JButton back = new JButton(new ImageIcon("./Image/백 버튼.jpg"));
+	// How to play button activation method, How to play 버튼 동작 매소드
+	public void explainGame() {
 		
-		back.setRolloverIcon(new ImageIcon("./Image/백 버튼2.jpg")); // 버튼 눌럿을때
-		back.setBorderPainted(false); // 버튼 테두리 없애기
-		back.setBounds(650, 630, 150, 70); // 버튼 위치 지정
-		back.addActionListener(new ActionListener() { // 백 버튼  동작 설정
+		JLabel howtoplayImageLabel = new JLabel(new ImageIcon("./Image/하우투 플레이 이미지.jpg")); 
+		JButton backButton = new JButton(new ImageIcon("./Image/백 버튼.jpg"));
+		
+		howtoplayImageLabel.setBounds(1,1,990,790);
+		backButton.setRolloverIcon(new ImageIcon("./Image/백 버튼2.jpg")); 
+		backButton.setBorderPainted(false);
+		backButton.setBounds(650, 630, 150, 70); 
+		backButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				HowToP.setVisible(false);
-				l.setVisible(true);
-				l1.setVisible(true);
-				l2.setVisible(true);
-				l3.setVisible(true);
-				a.setVisible(false);
+				howtoplayImageLabel.setVisible(false);
+				mainLabel.setVisible(true);
+				titleImageLabel.setVisible(true);
+				bottleImageLabel.setVisible(true);
+				bambooImageLabel.setVisible(true);
 			}
 		});
 		
-		HowToP.add(back);
-		f.add(HowToP);	
+		howtoplayImageLabel.add(backButton);
+		add(howtoplayImageLabel);	
 	}
 	
-	public static void gameSetting() {
-		JLabel gameSet = new JLabel(); //
-		JLabel j1 = new JLabel(new ImageIcon("./Image/플레이어 수 선택 이미지.jpg"));
-		JLabel j2 = new JLabel(new ImageIcon("./Image/ai 수 선택 이미지.jpg"));
-		JLabel j3 = new JLabel(new ImageIcon("./Image/게임 모드 선택 이미지.jpg"));
+	// game start button activation method, game start 버튼 동작 매소드
+	// first display after choose game start button, 게임시작 버튼 이루 첫번째 화면
+	public void gameSetting() {
 		
-		gameSet.setOpaque(true);  // 라밸 백그라운드 설정
-		gameSet.setBackground(c1); // 백그라운드 색 지정
+		JLabel gameSettingMainLabel = new JLabel(); //
+		JLabel gameSettingImageLabel1 = new JLabel(new ImageIcon("./Image/플레이어 수 선택 이미지.jpg"));
+		JLabel gameSettingImageLabel2 = new JLabel(new ImageIcon("./Image/ai 수 선택 이미지.jpg"));
+		JLabel gameSettingImageLabel3 = new JLabel(new ImageIcon("./Image/게임 모드 선택 이미지.jpg"));
 		
-		JButton b0 = new JButton(new ImageIcon("./Image/0버튼.jpg"));
-		JLabel jb0 = new JLabel(new ImageIcon("./Image/0버튼2.jpg"));
-		JButton b1 = new JButton(new ImageIcon("./Image/1버튼.jpg")); // 버튼 이미지
-		JLabel jb1 = new JLabel(new ImageIcon("./Image/1버튼2.jpg")); // 버튼 눌렀을때 이미지
-		JButton b2 = new JButton(new ImageIcon("./Image/2버튼.jpg"));
-		JLabel jb2 = new JLabel(new ImageIcon("./Image/2버튼2.jpg"));
-		JButton b3 = new JButton(new ImageIcon("./Image/3버튼.jpg"));
-		JLabel jb3 = new JLabel(new ImageIcon("./Image/3버튼2.jpg"));
-		JButton b4 = new JButton(new ImageIcon("./Image/4버튼.jpg"));
-		JLabel jb4 = new JLabel(new ImageIcon("./Image/4버튼2.jpg"));
-		JButton b5 = new JButton(new ImageIcon("./Image/1버튼.jpg"));
-		JLabel jb5 = new JLabel(new ImageIcon("./Image/1버튼2.jpg"));
-		JButton b6 = new JButton(new ImageIcon("./Image/2버튼.jpg"));
-		JLabel jb6 = new JLabel(new ImageIcon("./Image/2버튼2.jpg"));
-		JButton b7 = new JButton(new ImageIcon("./Image/항복온 버튼.jpg"));
-		JLabel jb7 = new JLabel(new ImageIcon("./Image/항복온 버튼2.jpg"));
-		JButton b8 = new JButton(new ImageIcon("./Image/항복오프 버튼.jpg"));
-		JLabel jb8 = new JLabel(new ImageIcon("./Image/항복오프 버튼2.jpg"));
+		JButton player1Button = new JButton(new ImageIcon("./Image/1버튼.jpg")); // player number setting button, 플레이어 수 결정 버튼
+		JLabel player1Label = new JLabel(new ImageIcon("./Image/1버튼2.jpg"));  // button choice image, 버튼 눌려진 이미지
+		JButton player2Button = new JButton(new ImageIcon("./Image/2버튼.jpg"));
+		JLabel player2Label = new JLabel(new ImageIcon("./Image/2버튼2.jpg"));
+		JButton player3Button = new JButton(new ImageIcon("./Image/3버튼.jpg"));
+		JLabel player3Label = new JLabel(new ImageIcon("./Image/3버튼2.jpg"));
+		JButton player4Button = new JButton(new ImageIcon("./Image/4버튼.jpg"));
+		JLabel player4Label = new JLabel(new ImageIcon("./Image/4버튼2.jpg"));
+		JButton AI0Button = new JButton(new ImageIcon("./Image/0버튼.jpg")); // AI number setting button, AI 수 결정 버튼
+		JLabel AI0Label = new JLabel(new ImageIcon("./Image/0버튼2.jpg")); // button choice image, 버튼 눌려진 이미지
+		JButton AI1Button = new JButton(new ImageIcon("./Image/1버튼.jpg")); 
+		JLabel AI1Label = new JLabel(new ImageIcon("./Image/1버튼2.jpg")); 
+		JButton AI2Button = new JButton(new ImageIcon("./Image/2버튼.jpg"));
+		JLabel AI2Label = new JLabel(new ImageIcon("./Image/2버튼2.jpg"));
+		JButton giveupOnButton = new JButton(new ImageIcon("./Image/항복온 버튼.jpg")); // game mode setting button, 게임모드 결정 버튼
+		JLabel giveupOnLabel = new JLabel(new ImageIcon("./Image/항복온 버튼2.jpg")); // button choice image, 버튼 눌려진 이미지
+		JButton giveupOffButton = new JButton(new ImageIcon("./Image/항복오프 버튼.jpg"));
+		JLabel giveupOffLabel = new JLabel(new ImageIcon("./Image/항복오프 버튼2.jpg"));
 		
-		JButton b9 = new JButton(new ImageIcon("./Image/다음 버튼.jpg"));
+		JButton nextButton = new JButton(new ImageIcon("./Image/다음 버튼.jpg")); 
+		// next button. when game setting done, button display, 다음 버튼으로 필요한 버튼들이 모두 눌러져야 화면에 표시
 		
-		b0.setBounds(360, 350, 85, 65);
-		jb0.setBounds(360, 350, 85, 65);
-		b1.setBounds(250, 150, 85, 65); // 각 버튼 위치 지정
-		jb1.setBounds(250, 150, 85, 65); 
-		b2.setBounds(390, 150, 85, 65);
-		jb2.setBounds(390, 150, 85, 65);
-		b3.setBounds(530, 150, 85, 65);
-		jb3.setBounds(530, 150, 85, 65);
-		b4.setBounds(670, 150, 85, 65);
-		jb4.setBounds(670, 150, 85, 65);
-		b5.setBounds(460, 350, 85, 65);
-		jb5.setBounds(460, 350, 85, 65);
-		b6.setBounds(560, 350, 85, 65);
-		jb6.setBounds(560, 350, 85, 65);
-		b7.setBounds(400, 550, 190, 75);
-		jb7.setBounds(400, 550, 190, 75);
-		b8.setBounds(400, 650, 190, 75);
-		jb8.setBounds(400, 650, 190, 75);
-		b9.setBounds(850, 20, 100, 40);
+		gameSettingMainLabel.setOpaque(true); 
+		gameSettingMainLabel.setBackground(defalutBackgroundColor); 
 		
-		jb0.setVisible(false);
-		jb1.setVisible(false);
-		jb2.setVisible(false);
-		jb3.setVisible(false);
-		jb4.setVisible(false);
-		jb5.setVisible(false);
-		jb6.setVisible(false);
-		jb7.setVisible(false);
-		jb8.setVisible(false);
-		b9.setVisible(false); // 버튼 3개 다 누루면 등장!
+		gameSettingImageLabel1.setBounds(300, 50, 400, 100); // Label or Button location setting, 라벨,버튼 위치설정
+		gameSettingImageLabel2.setBounds(300, 250, 400, 100);
+		gameSettingImageLabel3.setBounds(300, 450, 400, 100);
+		player1Button.setBounds(250, 150, 85, 65);player1Label.setBounds(250, 150, 85, 65); 
+		player2Button.setBounds(390, 150, 85, 65);player2Label.setBounds(390, 150, 85, 65);
+		player3Button.setBounds(530, 150, 85, 65);player3Label.setBounds(530, 150, 85, 65);
+		player4Button.setBounds(670, 150, 85, 65);player4Label.setBounds(670, 150, 85, 65);
+		AI0Button.setBounds(360, 350, 85, 65);AI0Label.setBounds(360, 350, 85, 65);
+		AI1Button.setBounds(460, 350, 85, 65);AI1Label.setBounds(460, 350, 85, 65);
+		AI2Button.setBounds(560, 350, 85, 65);AI2Label.setBounds(560, 350, 85, 65);
+		giveupOnButton.setBounds(400, 550, 190, 75);giveupOnLabel.setBounds(400, 550, 190, 75);
+		giveupOffButton.setBounds(400, 650, 190, 75);giveupOffLabel.setBounds(400, 650, 190, 75);
+		nextButton.setBounds(850, 20, 100, 40);
 		
+		player1Label.setVisible(false); // first display setting, 처음 화면 설정
+		player2Label.setVisible(false);
+		player3Label.setVisible(false);
+		player4Label.setVisible(false);
+		AI0Label.setVisible(false);
+		AI1Label.setVisible(false);
+		AI2Label.setVisible(false);
+		giveupOnLabel.setVisible(false);
+		giveupOffLabel.setVisible(false);
+		nextButton.setVisible(false); 
 		
-		b1.setRolloverIcon(new ImageIcon("./Image/1버튼2.jpg")); // 버튼 눌럿을때
-		b1.setBorderPainted(false); // 버튼 테두리 없애기
-		b1.addActionListener(new ActionListener() { // 백 버튼  동작 설정
+		// button activation setting, 버튼 동작 설정
+		// 1 line, 1 choice setting, 한 라인에서 한 버튼만 선택 가능하도록 설정함
+		player1Button.setRolloverIcon(new ImageIcon("./Image/1버튼2.jpg")); 
+		player1Button.setBorderPainted(false); 
+		player1Button.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				jb2.setVisible(false);
-				jb3.setVisible(false);
-				jb4.setVisible(false);
-				b1.setVisible(false);
-				b2.setVisible(true);
-				b3.setVisible(true);
-				b4.setVisible(true);
-				jb1.setVisible(true);
-				_플레이어_수 = 1;
-				tf1 = true;
-				if(tf1 == true && tf2 == true && tf3 == true && nextbuttonset == false) {
-					b9.setVisible(true);
-					nextbuttonset = true;
+				player2Label.setVisible(false);
+				player3Label.setVisible(false);
+				player4Label.setVisible(false);
+				player1Button.setVisible(false);
+				player2Button.setVisible(true);
+				player3Button.setVisible(true);
+				player4Button.setVisible(true);
+				player1Label.setVisible(true);
+				// by button, setting player number, 버튼에 따라서 플레이서 수 설정
+				PlayerNum = 1;
+				// first line button check flag, 첫번째 줄의 버튼이 눌려졌는지를 확인
+				firstButtonFlag = true;
+				// if, 3 line button chick is done, next button display, 만약 3중의 버튼이 모두 클릭되면, 다음 버튼 표시함
+				if(firstButtonFlag == true && secondButtonFlag == true && thirdButtonFlag == true && nextButtonSetFlag == false) {
+					nextButton.setVisible(true);
+					nextButtonSetFlag = true;
 				}
 			}});
-		b2.setRolloverIcon(new ImageIcon("./Image/2버튼2.jpg")); // 버튼 눌럿을때
-		b2.setBorderPainted(false); // 버튼 테두리 없애기
-		b2.addActionListener(new ActionListener() { // 백 버튼  동작 설정
+		player2Button.setRolloverIcon(new ImageIcon("./Image/2버튼2.jpg")); 
+		player2Button.setBorderPainted(false); 
+		player2Button.addActionListener(new ActionListener() { 
 			public void actionPerformed(ActionEvent e) {
-				jb1.setVisible(false);
-				jb3.setVisible(false);
-				jb4.setVisible(false);
-				b2.setVisible(false);
-				b1.setVisible(true);
-				b3.setVisible(true);
-				b4.setVisible(true);
-				jb2.setVisible(true);
-				_플레이어_수 = 2;
-				tf1 = true;
-				if(tf1 == true && tf2 == true && tf3 == true && nextbuttonset == false) {
-					b9.setVisible(true);
-					nextbuttonset = true;
+				player1Label.setVisible(false);
+				player3Label.setVisible(false);
+				player4Label.setVisible(false);
+				player2Button.setVisible(false);
+				player1Button.setVisible(true);
+				player3Button.setVisible(true);
+				player4Button.setVisible(true);
+				player2Label.setVisible(true);
+				PlayerNum = 2;
+				firstButtonFlag = true;
+				if(firstButtonFlag == true && secondButtonFlag == true && thirdButtonFlag == true && nextButtonSetFlag == false) {
+					nextButton.setVisible(true);
+					nextButtonSetFlag = true;
 				}
 			}});
-		b3.setRolloverIcon(new ImageIcon("./Image/3버튼2.jpg")); // 버튼 눌럿을때
-		b3.setBorderPainted(false); // 버튼 테두리 없애기
-		b3.addActionListener(new ActionListener() { // 백 버튼  동작 설정
+		player3Button.setRolloverIcon(new ImageIcon("./Image/3버튼2.jpg"));
+		player3Button.setBorderPainted(false); 
+		player3Button.addActionListener(new ActionListener() { 
 			public void actionPerformed(ActionEvent e) {
-				jb1.setVisible(false);
-				jb2.setVisible(false);
-				jb4.setVisible(false);
-				b3.setVisible(false);
-				b1.setVisible(true);
-				b2.setVisible(true);
-				b4.setVisible(true);
-				jb3.setVisible(true);
-				_플레이어_수 = 3;
-				tf1 = true;
-				if(tf1 == true && tf2 == true && tf3 == true && nextbuttonset == false) {
-					b9.setVisible(true);
-					nextbuttonset = true;
+				player1Label.setVisible(false);
+				player2Label.setVisible(false);
+				player4Label.setVisible(false);
+				player3Button.setVisible(false);
+				player1Button.setVisible(true);
+				player2Button.setVisible(true);
+				player4Button.setVisible(true);
+				player3Label.setVisible(true);
+				PlayerNum = 3;
+				firstButtonFlag = true;
+				if(firstButtonFlag == true && secondButtonFlag == true && thirdButtonFlag == true && nextButtonSetFlag == false) {
+					nextButton.setVisible(true);
+					nextButtonSetFlag = true;
 				}
 			}});
-		b4.setRolloverIcon(new ImageIcon("./Image/4버튼2.jpg")); // 버튼 눌럿을때
-		b4.setBorderPainted(false); // 버튼 테두리 없애기
-		b4.addActionListener(new ActionListener() { // 백 버튼  동작 설정
+		player4Button.setRolloverIcon(new ImageIcon("./Image/4버튼2.jpg"));
+		player4Button.setBorderPainted(false); 
+		player4Button.addActionListener(new ActionListener() { 
 			public void actionPerformed(ActionEvent e) {
-				jb1.setVisible(false);
-				jb2.setVisible(false);
-				jb3.setVisible(false);
-				b4.setVisible(false);
-				b1.setVisible(true);
-				b2.setVisible(true);
-				b3.setVisible(true);
-				jb4.setVisible(true);
-				_플레이어_수 = 4;
-				tf1 = true;
-				if(tf1 == true && tf2 == true && tf3 == true && nextbuttonset == false) {
-					b9.setVisible(true);
-					nextbuttonset = true;
+				player1Label.setVisible(false);
+				player2Label.setVisible(false);
+				player3Label.setVisible(false);
+				player4Button.setVisible(false);
+				player1Button.setVisible(true);
+				player2Button.setVisible(true);
+				player3Button.setVisible(true);
+				player4Label.setVisible(true);
+				PlayerNum = 4;
+				firstButtonFlag = true;
+				if(firstButtonFlag == true && secondButtonFlag == true && thirdButtonFlag == true && nextButtonSetFlag == false) {
+					nextButton.setVisible(true);
+					nextButtonSetFlag = true;
 				}
 			}});
-		b0.setRolloverIcon(new ImageIcon("./Image/0버튼2.jpg")); // 버튼 눌럿을때
-		b0.setBorderPainted(false); // 버튼 테두리 없애기
-		b0.addActionListener(new ActionListener() { // 백 버튼  동작 설정
+		AI0Button.setRolloverIcon(new ImageIcon("./Image/0버튼2.jpg")); 
+		AI0Button.setBorderPainted(false);
+		AI0Button.addActionListener(new ActionListener() { 
 			public void actionPerformed(ActionEvent e) {		
-				jb5.setVisible(false);
-				jb6.setVisible(false);
-				b6.setVisible(true);
-				b5.setVisible(true);
-				b0.setVisible(false);
-				jb0.setVisible(true);
-				l3.setVisible(false); // 오류 수정용, 없으면
-				l3.setVisible(true);  // 옆에 대나무 짤려보임
-				_AI_수 = 0;
-				tf2 = true;
-				if(tf1 == true && tf2 == true && tf3 == true && nextbuttonset == false) {
-					b9.setVisible(true);
-					nextbuttonset = true;
+				AI1Label.setVisible(false);
+				AI2Label.setVisible(false);
+				AI2Button.setVisible(true);
+				AI1Button.setVisible(true);
+				AI0Button.setVisible(false);
+				AI0Label.setVisible(true);
+				bambooImageLabel.setVisible(false); // for error correct, 오류 수정용 
+				bambooImageLabel.setVisible(true);  // if this code is gone, bamboo is cutting..., 없으면 옆에 대나무 짤려보임
+				// by button, setting player number, 버튼에 따라서 플레이서 수 설정
+				AINum = 0;
+				// first line button check flag, 첫번째 줄의 버튼이 눌려졌는지를 확인
+				secondButtonFlag = true;
+				if(firstButtonFlag == true && secondButtonFlag == true && thirdButtonFlag == true && nextButtonSetFlag == false) {
+					nextButton.setVisible(true);
+					nextButtonSetFlag = true;
 				}
 			}});
-		b5.setRolloverIcon(new ImageIcon("./Image/1버튼2.jpg")); // 버튼 눌럿을때
-		b5.setBorderPainted(false); // 버튼 테두리 없애기
-		b5.addActionListener(new ActionListener() { // 백 버튼  동작 설정
+		AI1Button.setRolloverIcon(new ImageIcon("./Image/1버튼2.jpg"));
+		AI1Button.setBorderPainted(false);
+		AI1Button.addActionListener(new ActionListener() { 
 			public void actionPerformed(ActionEvent e) {		
-				jb0.setVisible(false);
-				jb6.setVisible(false);
-				b6.setVisible(true);
-				b0.setVisible(true);
-				b5.setVisible(false);
-				jb5.setVisible(true);
-				l3.setVisible(false); // 오류 수정용, 없으면
-				l3.setVisible(true);  // 옆에 대나무 짤려보임
-				_AI_수 = 1;
-				tf2 = true;
-				if(tf1 == true && tf2 == true && tf3 == true && nextbuttonset == false) {
-					b9.setVisible(true);
-					nextbuttonset = true;
+				AI0Label.setVisible(false);
+				AI2Label.setVisible(false);
+				AI2Button.setVisible(true);
+				AI0Button.setVisible(true);
+				AI1Button.setVisible(false);
+				AI1Label.setVisible(true);
+				bambooImageLabel.setVisible(false); 
+				bambooImageLabel.setVisible(true); 
+				AINum = 1;
+				secondButtonFlag = true;
+				if(firstButtonFlag == true && secondButtonFlag == true && thirdButtonFlag == true && nextButtonSetFlag == false) {
+					nextButton.setVisible(true);
+					nextButtonSetFlag = true;
 				}
 			}});
-		b6.setRolloverIcon(new ImageIcon("./Image/2버튼2.jpg")); // 버튼 눌럿을때
-		b6.setBorderPainted(false); // 버튼 테두리 없애기
-		b6.addActionListener(new ActionListener() { // 백 버튼  동작 설정
+		AI2Button.setRolloverIcon(new ImageIcon("./Image/2버튼2.jpg"));
+		AI2Button.setBorderPainted(false); 
+		AI2Button.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {		
-				jb0.setVisible(false);
-				jb5.setVisible(false);
-				b5.setVisible(true);
-				b0.setVisible(true);
-				b6.setVisible(false);
-				jb6.setVisible(true);
-				l3.setVisible(false); // 오류 수정용, 없으면
-				l3.setVisible(true);  // 옆에 대나무 짤려보임
-				_AI_수 = 2;
-				tf2 = true;
-				if(tf1 == true && tf2 == true && tf3 == true && nextbuttonset == false) {
-					b9.setVisible(true);
-					nextbuttonset = true;
+				AI0Label.setVisible(false);
+				AI1Label.setVisible(false);
+				AI1Button.setVisible(true);
+				AI0Button.setVisible(true);
+				AI2Button.setVisible(false);
+				AI2Label.setVisible(true);
+				bambooImageLabel.setVisible(false);
+				bambooImageLabel.setVisible(true); 
+				AINum = 2;
+				secondButtonFlag = true;
+				if(firstButtonFlag == true && secondButtonFlag == true && thirdButtonFlag == true && nextButtonSetFlag == false) {
+					nextButton.setVisible(true);
+					nextButtonSetFlag = true;
 				}
 			}});
-		b7.setRolloverIcon(new ImageIcon("./Image/항복온 버튼2.jpg")); // 버튼 눌럿을때
-		b7.setBorderPainted(false); // 버튼 테두리 없애기
-		b7.addActionListener(new ActionListener() { // 백 버튼  동작 설정
+		giveupOnButton.setRolloverIcon(new ImageIcon("./Image/항복온 버튼2.jpg"));
+		giveupOnButton.setBorderPainted(false); 
+		giveupOnButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {		
-				jb8.setVisible(false);
-				b8.setVisible(true);
-				b7.setVisible(false);
-				jb7.setVisible(true);
-				l3.setVisible(false); // 오류 수정용, 없으면
-				l3.setVisible(true);  // 옆에 대나무 짤려보임
-				_게임모드 = 1;
-				tf3 = true;
-				if(tf1 == true && tf2 == true && tf3 == true && nextbuttonset == false) {
-					b9.setVisible(true);
-					nextbuttonset = true;
+				giveupOffLabel.setVisible(false);
+				giveupOffButton.setVisible(true);
+				giveupOnButton.setVisible(false);
+				giveupOnLabel.setVisible(true);
+				bambooImageLabel.setVisible(false); 
+				bambooImageLabel.setVisible(true);  
+				gameMode = 1; 
+				thirdButtonFlag = true;
+				if(firstButtonFlag == true && secondButtonFlag == true && thirdButtonFlag == true && nextButtonSetFlag == false) {
+					nextButton.setVisible(true);
+					nextButtonSetFlag = true;
 				}
 			}});
-		b8.setRolloverIcon(new ImageIcon("./Image/항복오프 버튼2.jpg")); // 버튼 눌럿을때
-		b8.setBorderPainted(false); // 버튼 테두리 없애기
-		b8.addActionListener(new ActionListener() { // 백 버튼  동작 설정
+		giveupOffButton.setRolloverIcon(new ImageIcon("./Image/항복오프 버튼2.jpg")); 
+		giveupOffButton.setBorderPainted(false); 
+		giveupOffButton.addActionListener(new ActionListener() { 
 			public void actionPerformed(ActionEvent e) {		
-				jb7.setVisible(false);
-				b7.setVisible(true);
-				b8.setVisible(false);
-				jb8.setVisible(true);
-				l3.setVisible(false); // 오류 수정용, 없으면
-				l3.setVisible(true);  // 옆에 대나무 짤려보임
-				_게임모드 = 2;
-				tf3 = true;
-				if(tf1 == true && tf2 == true && tf3 == true && nextbuttonset == false) {
-					b9.setVisible(true);
-					nextbuttonset = true;
+				giveupOnLabel.setVisible(false);
+				giveupOnButton.setVisible(true);
+				giveupOffButton.setVisible(false);
+				giveupOffLabel.setVisible(true);
+				bambooImageLabel.setVisible(false);
+				bambooImageLabel.setVisible(true); 
+				gameMode = 2; 
+				thirdButtonFlag = true;
+				if(firstButtonFlag == true && secondButtonFlag == true && thirdButtonFlag == true && nextButtonSetFlag == false) {
+					nextButton.setVisible(true);
+					nextButtonSetFlag = true;
 				}
 			}});
-		b9.setRolloverIcon(new ImageIcon("./Image/다음 버튼2.jpg")); // 버튼 눌럿을때
-		b9.setBorderPainted(false); // 버튼 테두리 없애기
-		b9.addActionListener(new ActionListener() { // 백 버튼  동작 설정
-			public void actionPerformed(ActionEvent e) {		
-				gameSet.setVisible(false);
+		// when choose all setting button, next button is appear
+		// 3중의 버튼이 모두 하나 이상씩 눌러지면, 다음 버튼이 생성됨
+		nextButton.setRolloverIcon(new ImageIcon("./Image/다음 버튼2.jpg")); 
+		nextButton.setBorderPainted(false); 
+		nextButton.addActionListener(new ActionListener() { 
+			public void actionPerformed(ActionEvent e) {	
+				gameSettingMainLabel.setVisible(false);
 				settingName();
+				// when clicked button, display transition, 다음 버튼 눌럿을시, 화면 전환
 			}});
 		
-		j1.setBounds(300, 50, 400, 100); // 택스트 위치 설정
-		j2.setBounds(300, 250, 400, 100);
-		j3.setBounds(300, 450, 400, 100);
-		gameSet.add(j1);gameSet.add(j2);gameSet.add(j3);gameSet.add(b9);
-		gameSet.add(b1);gameSet.add(b2);gameSet.add(b3);gameSet.add(b4);
-		gameSet.add(b5);gameSet.add(b6);gameSet.add(b7);gameSet.add(b8);
-		gameSet.add(jb1);gameSet.add(jb2);gameSet.add(jb3);gameSet.add(jb4);
-		gameSet.add(jb5);gameSet.add(jb6);gameSet.add(jb7);gameSet.add(jb8);
-		gameSet.add(b0);gameSet.add(jb0);
-		f.add(gameSet);
+		gameSettingMainLabel.add(gameSettingImageLabel1); // add element at Label, 라벨에 라벨과 버튼 추가
+		gameSettingMainLabel.add(gameSettingImageLabel2);
+		gameSettingMainLabel.add(gameSettingImageLabel3);
+		gameSettingMainLabel.add(nextButton);
+		gameSettingMainLabel.add(player1Button);
+		gameSettingMainLabel.add(player2Button);
+		gameSettingMainLabel.add(player3Button);
+		gameSettingMainLabel.add(player4Button);
+		gameSettingMainLabel.add(AI1Button);
+		gameSettingMainLabel.add(AI2Button);
+		gameSettingMainLabel.add(giveupOnButton);
+		gameSettingMainLabel.add(giveupOffButton);
+		gameSettingMainLabel.add(player1Label);
+		gameSettingMainLabel.add(player2Label);
+		gameSettingMainLabel.add(player3Label);
+		gameSettingMainLabel.add(player4Label);
+		gameSettingMainLabel.add(AI1Label);
+		gameSettingMainLabel.add(AI2Label);
+		gameSettingMainLabel.add(giveupOnLabel);
+		gameSettingMainLabel.add(giveupOffLabel);
+		gameSettingMainLabel.add(AI0Button);
+		gameSettingMainLabel.add(AI0Label);
+		add(gameSettingMainLabel); // add Label at Frame, 프레임에 라벨 추가
 	}
 	
-	
-	public static void settingName() {
-		JLabel setName = new JLabel(); //
-		setName.setOpaque(true);  // 라밸 백그라운드 설정
-		setName.setBackground(c1); // 백그라운드 색 지정
+	// second display after choose game start button, 게임시작 버튼 이루 두번째 화면
+	public void settingName() {
+		JLabel settingNameMainLabel = new JLabel(); //	
+		JLabel player1NameImageLabel = new JLabel(new ImageIcon("./Image/플레이어1 이름입력 이미지.jpg"));
+		JLabel player2NameImageLabel = new JLabel(new ImageIcon("./Image/플레이어2 이름입력 이미지.jpg"));
+		JLabel player3NameImageLabel = new JLabel(new ImageIcon("./Image/플레이어3 이름입력 이미지.jpg"));
+		JLabel player4NameImageLabel = new JLabel(new ImageIcon("./Image/플레이어4 이름입력 이미지.jpg"));
+		JLabel nameSettingImageLabel = new JLabel(new ImageIcon("./Image/이름입력 이미지.jpg"));
+		JLabel glassSettingImageLabel = new JLabel(new ImageIcon("./Image/주량입력이미지.jpg"));
+		JTextField player1NameSettingTestField = new JTextField(); // using JTextField, get user input
+		JTextField player1GlassSettingTestField = new JTextField();// JTextField를 이용해 사용자 입력 받음
+		JTextField player2NameSettingTestField = new JTextField();
+		JTextField player2GlassSettingTestField = new JTextField();
+		JTextField player3NameSettingTestField = new JTextField();
+		JTextField player3GlassSettingTestField = new JTextField();
+		JTextField player4NameSettingTestField = new JTextField();
+		JTextField player4GlassSettingTestField = new JTextField();
+		JButton settingDoneButton = new JButton(new ImageIcon("./Image/완료 버튼.jpg"));
 		
+		// element location setting, 위치설정
+		player1NameImageLabel.setBounds(370, 100, 300, 100);
+		player2NameImageLabel.setBounds(370, 100, 300, 100);
+		player3NameImageLabel.setBounds(370, 100, 300, 100);
+		player4NameImageLabel.setBounds(370, 100, 300, 100);
+		nameSettingImageLabel.setBounds(390, 200, 250, 100);
+		glassSettingImageLabel.setBounds(390, 350, 250, 100);
+		player1NameSettingTestField.setBounds(440, 300, 150, 30);
+		player2NameSettingTestField.setBounds(440, 300, 150, 30);
+		player3NameSettingTestField.setBounds(440, 300, 150, 30);
+		player4NameSettingTestField.setBounds(440, 300, 150, 30);
+		player1GlassSettingTestField.setBounds(440, 450, 150, 30);
+		player2GlassSettingTestField.setBounds(440, 450, 150, 30);
+		player3GlassSettingTestField.setBounds(440, 450, 150, 30);
+		player4GlassSettingTestField.setBounds(440, 450, 150, 30);
+		settingDoneButton.setBounds(470, 500, 83, 40);
 		
-		JLabel sl1 = new JLabel(new ImageIcon("./Image/플레이어1 이름입력 이미지.jpg"));
-		JLabel sl2 = new JLabel(new ImageIcon("./Image/플레이어2 이름입력 이미지.jpg"));
-		JLabel sl3 = new JLabel(new ImageIcon("./Image/플레이어3 이름입력 이미지.jpg"));
-		JLabel sl4 = new JLabel(new ImageIcon("./Image/플레이어4 이름입력 이미지.jpg"));
-		JLabel s1 = new JLabel(new ImageIcon("./Image/이름입력 이미지.jpg"));
-		JLabel s2 = new JLabel(new ImageIcon("./Image/주량입력이미지.jpg"));
-		JTextField t1 = new JTextField();
-		JTextField t11 = new JTextField();
-		JTextField t2 = new JTextField();
-		JTextField t22 = new JTextField();
-		JTextField t3 = new JTextField();
-		JTextField t33 = new JTextField();
-		JTextField t4 = new JTextField();
-		JTextField t44 = new JTextField();
-		JButton b1 = new JButton(new ImageIcon("./Image/완료 버튼.jpg"));
+		// first display setting, 처음 화면 설정
+		settingNameMainLabel.setOpaque(true); 
+		settingNameMainLabel.setBackground(defalutBackgroundColor); 
 		
-		sl1.setBounds(370, 100, 300, 100);
-		sl2.setBounds(370, 100, 300, 100);
-		sl3.setBounds(370, 100, 300, 100);
-		sl4.setBounds(370, 100, 300, 100);
-		s1.setBounds(390, 200, 250, 100);
-		s2.setBounds(390, 350, 250, 100);
-		t1.setBounds(440, 300, 150, 30);
-		t2.setBounds(440, 300, 150, 30);
-		t3.setBounds(440, 300, 150, 30);
-		t4.setBounds(440, 300, 150, 30);
-		t11.setBounds(440, 450, 150, 30);
-		t22.setBounds(440, 450, 150, 30);
-		t33.setBounds(440, 450, 150, 30);
-		t44.setBounds(440, 450, 150, 30);
-		b1.setBounds(470, 500, 83, 40);
+		player2NameImageLabel.setVisible(false);
+		player3NameImageLabel.setVisible(false);
+		player4NameImageLabel.setVisible(false);
+		player2NameSettingTestField.setVisible(false);
+		player3NameSettingTestField.setVisible(false);
+		player4NameSettingTestField.setVisible(false);
+		player2GlassSettingTestField.setVisible(false);
+		player3GlassSettingTestField.setVisible(false);
+		player4GlassSettingTestField.setVisible(false);
 		
-		sl2.setVisible(false);
-		sl3.setVisible(false);
-		sl4.setVisible(false);
-		t2.setVisible(false);
-		t3.setVisible(false);
-		t4.setVisible(false);
-		t22.setVisible(false);
-		t33.setVisible(false);
-		t44.setVisible(false);
-		
-		
-		b1.setRolloverIcon(new ImageIcon("./Image/완료 버튼2.jpg")); // 버튼 눌럿을때
-		b1.setBorderPainted(false); // 버튼 테두리 없애기
-		b1.addActionListener(new ActionListener() { // 백 버튼  동작 설정
+		// button activation setting, 버튼 동작 설정
+		settingDoneButton.setRolloverIcon(new ImageIcon("./Image/완료 버튼2.jpg")); 
+		settingDoneButton.setBorderPainted(false);
+		settingDoneButton.addActionListener(new ActionListener() { 
 			public void actionPerformed(ActionEvent e) {		
-				if(_플레이어_수 != 1 && _버튼누른횟수 == 0) { // 버튼 처음 누룰때
-					sl1.setVisible(false);
-					sl2.setVisible(true);
-					_이름[0] = t1.getText();
-					_주량[0] = Integer.parseInt(t11.getText());
-					t1.setVisible(false);
-					t11.setVisible(false);
-					t2.setVisible(true);	
-					t22.setVisible(true);	
-					_버튼누른횟수 ++;
-					l3.setVisible(false); // 오류 수정용, 없으면
-					l3.setVisible(true);  // 옆에 대나무 짤려보임
+				if(PlayerNum != 1 && BottonPushNum == 0) {  
+					player1NameImageLabel.setVisible(false);
+					player2NameImageLabel.setVisible(true);
+					characterName[0] = player1NameSettingTestField.getText();
+					characterMaxGlass[0] = Integer.parseInt(player1GlassSettingTestField.getText());
+					player1NameSettingTestField.setVisible(false);
+					player1GlassSettingTestField.setVisible(false);
+					player2NameSettingTestField.setVisible(true);	
+					player2GlassSettingTestField.setVisible(true);	
+					BottonPushNum ++;
+					bambooImageLabel.setVisible(false); 
+					bambooImageLabel.setVisible(true); 
 				}
-				else if(_플레이어_수 == 1 && _버튼누른횟수 == 0) { // 플레이어 1명일때
-					_이름[0] = t1.getText();
-					_주량[0] = Integer.parseInt(t11.getText());
-					setName.setVisible(false);
-					MainGame a = new MainGame();
-					a.mainGame();
-				}
-				
-				else if(_플레이어_수 != 2 && _버튼누른횟수 == 1) { // 버튼 두번째로 누룰때
-					sl2.setVisible(false);
-					sl3.setVisible(true);
-					_이름[1] = t2.getText();
-					_주량[1] = Integer.parseInt(t22.getText());
-					t2.setVisible(false);
-					t22.setVisible(false);
-					t3.setVisible(true);	
-					t33.setVisible(true);
-					_버튼누른횟수 ++;
-					l3.setVisible(false); // 오류 수정용, 없으면
-					l3.setVisible(true);  // 옆에 대나무 짤려보임
-				}
-				else if(_플레이어_수 == 2 && _버튼누른횟수 == 1) {  // 플레이어 2명일때
-					_이름[1] = t2.getText();
-					_주량[1] = Integer.parseInt(t22.getText());
-					setName.setVisible(false);
-					MainGame a = new MainGame();
-					a.mainGame();
-				}
-				else if(_플레이어_수 != 3 && _버튼누른횟수 == 2) { // 버튼 세번째로 누룰때
-					sl3.setVisible(false);
-					sl4.setVisible(true);
-					_이름[2] = t3.getText();
-					_주량[2] = Integer.parseInt(t33.getText());
-					t3.setVisible(false);
-					t33.setVisible(false);
-					t4.setVisible(true);	
-					t44.setVisible(true);
-					_버튼누른횟수 ++;
-					l3.setVisible(false); // 오류 수정용, 없으면
-					l3.setVisible(true);  // 옆에 대나무 짤려보임
-				}
-				else if(_플레이어_수 == 3 && _버튼누른횟수 == 2) { //플레이어 3명
-					_이름[2] = t3.getText();
-					_주량[2] = Integer.parseInt(t33.getText());
-					setName.setVisible(false);
-					MainGame a = new MainGame();
-					a.mainGame();
-				}
-				else if(_플레이어_수 == 4 && _버튼누른횟수 == 3) {// 버튼 세번째로 누룰때 and 플레이어 4명
-					_이름[3] = t4.getText();
-					_주량[3] = Integer.parseInt(t44.getText());
-					setName.setVisible(false);
-					MainGame a = new MainGame();
-					a.mainGame();
+				else if(PlayerNum == 1 && BottonPushNum == 0) { 
+					characterName[0] = player1NameSettingTestField.getText();
+					characterMaxGlass[0] = Integer.parseInt(player1GlassSettingTestField.getText());
+					settingNameMainLabel.setVisible(false);
+					mainGame();
 				}
 				
+				else if(PlayerNum != 2 && BottonPushNum == 1) { 
+					player2NameImageLabel.setVisible(false);
+					player3NameImageLabel.setVisible(true);
+					characterName[1] = player2NameSettingTestField.getText();
+					characterMaxGlass[1] = Integer.parseInt(player2GlassSettingTestField.getText());
+					player2NameSettingTestField.setVisible(false);
+					player2GlassSettingTestField.setVisible(false);
+					player3NameSettingTestField.setVisible(true);	
+					player3GlassSettingTestField.setVisible(true);
+					BottonPushNum ++;
+					bambooImageLabel.setVisible(false);
+					bambooImageLabel.setVisible(true);  
+				}
+				else if(PlayerNum == 2 && BottonPushNum == 1) { 
+					characterName[1] = player2NameSettingTestField.getText();
+					characterMaxGlass[1] = Integer.parseInt(player2GlassSettingTestField.getText());
+					settingNameMainLabel.setVisible(false);
+					mainGame();
+				}
+				else if(PlayerNum != 3 && BottonPushNum == 2) { 
+					player3NameImageLabel.setVisible(false);
+					player4NameImageLabel.setVisible(true);
+					characterName[2] = player3NameSettingTestField.getText();
+					characterMaxGlass[2] = Integer.parseInt(player3GlassSettingTestField.getText());
+					player3NameSettingTestField.setVisible(false);
+					player3GlassSettingTestField.setVisible(false);
+					player4NameSettingTestField.setVisible(true);	
+					player4GlassSettingTestField.setVisible(true);
+					BottonPushNum ++;
+					bambooImageLabel.setVisible(false); 
+					bambooImageLabel.setVisible(true); 
+				}
+				else if(PlayerNum == 3 && BottonPushNum == 2) {
+					characterName[2] = player3NameSettingTestField.getText();
+					characterMaxGlass[2] = Integer.parseInt(player3GlassSettingTestField.getText());
+					settingNameMainLabel.setVisible(false);
+					mainGame();
+				}
+				else if(PlayerNum == 4 && BottonPushNum == 3) {
+					characterName[3] = player4NameSettingTestField.getText();
+					characterMaxGlass[3] = Integer.parseInt(player4GlassSettingTestField.getText());
+					settingNameMainLabel.setVisible(false);
+					mainGame();
+				}
 			}});
 		
-		setName.add(sl1);setName.add(sl2);setName.add(sl3);setName.add(sl4);
-		setName.add(t1);setName.add(t2);setName.add(t3);setName.add(t4);
-		setName.add(t11);setName.add(t22);setName.add(t33);setName.add(t44);
-		setName.add(b1);setName.add(s1);setName.add(s2);
-		f.add(setName);
+		settingNameMainLabel.add(player1NameImageLabel);
+		settingNameMainLabel.add(player2NameImageLabel);
+		settingNameMainLabel.add(player3NameImageLabel);
+		settingNameMainLabel.add(player4NameImageLabel);
+		settingNameMainLabel.add(player1NameSettingTestField);
+		settingNameMainLabel.add(player2NameSettingTestField);
+		settingNameMainLabel.add(player3NameSettingTestField);
+		settingNameMainLabel.add(player4NameSettingTestField);
+		settingNameMainLabel.add(player1GlassSettingTestField);
+		settingNameMainLabel.add(player2GlassSettingTestField);
+		settingNameMainLabel.add(player3GlassSettingTestField);
+		settingNameMainLabel.add(player4GlassSettingTestField);
+		settingNameMainLabel.add(settingDoneButton);
+		settingNameMainLabel.add(nameSettingImageLabel);
+		settingNameMainLabel.add(glassSettingImageLabel);
+		add(settingNameMainLabel);
 		
 	}
-}
-class MainGame implements Runnable{
-	Thread t;
-	static int turn = 1;
-	static Player[] players = new Player[MainScreen._플레이어_수]; // 플레이어 객체 생성
-	static Ai[] ais = new Ai[MainScreen._AI_수];
-	static Slot Slots[] = new Slot[12];
-	static int random1 = 0;
 	
-	static JLabel Gamebord = new JLabel(new ImageIcon("./Image/bord.jpg")); 
-	static JTextField status1 = new JTextField(MainScreen._이름[0]+" : 현재 0 잔 "); 
-	static JTextField status2 = new JTextField(MainScreen._이름[1]+" : 현재 0 잔 "); 
-	static JTextField status3 = new JTextField(MainScreen._이름[2]+" : 현재 0 잔 "); 
-	static JTextField status4 = new JTextField(MainScreen._이름[3]+" : 현재 0 잔 "); 
-	static JTextField status5 = new JTextField(" AI1 : 현재 0 잔 "); 
-	static JTextField status6 = new JTextField(" AI2 : 현재 0 잔 "); 
-	static JTextField gamestatus1 = new JTextField(" 게임시작!, p1의 차례입니다. "); 
-	static JTextField gamestatus2 = new JTextField("주사위를 굴려주세요"); 
-	/*
-	static JLabel slot0 = new JLabel(new ImageIcon("./Image/슬롯1.jpeg"));
-	static JLabel slot1 = new JLabel(new ImageIcon("./Image/슬롯2.jpeg"));
-	static JLabel slot2 = new JLabel(new ImageIcon("./Image/슬롯3.jpeg"));
-	static JLabel slot3 = new JLabel(new ImageIcon("./Image/슬롯4.jpeg"));
-	static JLabel slot4 = new JLabel(new ImageIcon("./Image/슬롯5.jpeg"));
-	static JLabel slot5 = new JLabel(new ImageIcon("./Image/슬롯6.jpeg"));
-	static JLabel slot6 = new JLabel(new ImageIcon("./Image/슬롯7.jpeg"));
-	static JLabel slot7 = new JLabel(new ImageIcon("./Image/슬롯8.jpeg"));
-	static JLabel slot8 = new JLabel(new ImageIcon("./Image/슬롯9.jpeg"));
-	static JLabel slot9 = new JLabel(new ImageIcon("./Image/슬롯10.jpeg"));
-	static JLabel slot10 = new JLabel(new ImageIcon("./Image/슬롯11.jpeg"));
-	static JLabel slot11 = new JLabel(new ImageIcon("./Image/슬롯12.jpeg"));
-	*/
-	static JLabel _게임시작이미지 = new JLabel(new ImageIcon("./Image/게임시작이미지.jpg"));
-	static JLabel _주사위이미지1 = new JLabel(new ImageIcon("./Image/굴린주사위2.jpg"));
-	static JLabel _주사위이미지2 = new JLabel(new ImageIcon("./Image/굴린주사위1.jpg"));
-	static JLabel _주사위1 = new JLabel(new ImageIcon("./Image/주사위1.jpg"));
-	static JLabel _주사위2 = new JLabel(new ImageIcon("./Image/주사위2.jpg"));
-	static JLabel _주사위3 = new JLabel(new ImageIcon("./Image/주사위3.jpg"));
-	static JLabel _주사위4 = new JLabel(new ImageIcon("./Image/주사위4.jpg"));
-	static JLabel _주사위5 = new JLabel(new ImageIcon("./Image/주사위5.jpg"));
-	static JLabel _주사위6 = new JLabel(new ImageIcon("./Image/주사위6.jpg"));
-	static JLabel p1이미지 = new JLabel(new ImageIcon("./Image/p1아이콘.jpg"));
-	static JLabel p2이미지 = new JLabel(new ImageIcon("./Image/p2아이콘.jpg"));
-	static JLabel p3이미지 = new JLabel(new ImageIcon("./Image/p3아이콘.jpg"));
-	static JLabel p4이미지 = new JLabel(new ImageIcon("./Image/p4아이콘.jpg"));
-	static JLabel ai1이미지 = new JLabel(new ImageIcon("./Image/ai1아이콘.jpg"));
-	static JLabel ai2이미지 = new JLabel(new ImageIcon("./Image/ai2아이콘.jpg"));
-	static JButton _주사위버튼 = new JButton(new ImageIcon("./Image/주사위굴리기버튼.jpg"));
-	static JButton _항복버튼 = new JButton(new ImageIcon("./Image/항복버튼1.jpg"));
-	static JButton exit = new JButton(new ImageIcon("./Image/종료 버튼.jpg"));
-	
-	public void run() { // 0.5초 시간지연
-		try { Thread.sleep(500); } catch (InterruptedException e) {}
-		
-	}
-	public int dice() {
-		_주사위1.setVisible(false);
-		_주사위2.setVisible(false);
-		_주사위3.setVisible(false);
-		_주사위4.setVisible(false);
-		_주사위5.setVisible(false);
-		_주사위6.setVisible(false);
-		
-		_주사위이미지1.setVisible(false);
-		_주사위이미지2.setVisible(true);
-		run();
-		_주사위이미지2.setVisible(false);
-		_주사위이미지1.setVisible(true);
-		run();
-		_주사위이미지1.setVisible(false);
-		
-		int random = (int)(Math.random()*5+1);
-		switch(random) {
-		case 1: _주사위1.setVisible(true); break;
-		case 2: _주사위2.setVisible(true); break;
-		case 3: _주사위3.setVisible(true); break;
-		case 4: _주사위4.setVisible(true); break;
-		case 5: _주사위5.setVisible(true); break;
-		case 6: _주사위6.setVisible(true); break;
-		default : break;
-		}
-		return random;
-	}
-	public void location1(int a) {
-		players[0]._위치 += a;
-		if(players[0]._위치 >12)
-			players[0]._위치 -= 12;
-		switch(players[0]._위치) {
-		case 0: p1이미지.setBounds(65, 175, 20, 20); Gamebord.add(p1이미지); 
-		p1이미지.setVisible(false);p1이미지.setVisible(true);break;
-		case 1: p1이미지.setBounds(255, 175, 20, 20); Gamebord.add(p1이미지 );
-		p1이미지.setVisible(false);p1이미지.setVisible(true); break;
-		case 2: p1이미지.setBounds(445, 175, 20, 20); Gamebord.add(p1이미지 );
-		p1이미지.setVisible(false);p1이미지.setVisible(true);  break;
-		case 3: p1이미지.setBounds(635, 175, 20, 20); Gamebord.add(p1이미지 );
-		p1이미지.setVisible(false);p1이미지.setVisible(true); break;
-		case 4: p1이미지.setBounds(635, 340, 20, 20); Gamebord.add(p1이미지 );
-		p1이미지.setVisible(false);p1이미지.setVisible(true); break;
-		case 5: p1이미지.setBounds(635, 505, 20, 20); Gamebord.add(p1이미지 );
-		p1이미지.setVisible(false);p1이미지.setVisible(true); break;
-		case 6: p1이미지.setBounds(635, 670, 20, 20); Gamebord.add(p1이미지 );
-		p1이미지.setVisible(false);p1이미지.setVisible(true); break;
-		case 7: p1이미지.setBounds(445, 670, 20, 20); Gamebord.add(p1이미지 );
-		p1이미지.setVisible(false);p1이미지.setVisible(true); break;
-		case 8: p1이미지.setBounds(255, 670, 20, 20); Gamebord.add(p1이미지 );
-		p1이미지.setVisible(false);p1이미지.setVisible(true); break;
-		case 9: p1이미지.setBounds(65, 670, 20, 20); Gamebord.add(p1이미지 );
-		p1이미지.setVisible(false);p1이미지.setVisible(true); break;
-		case 10: p1이미지.setBounds(65, 505, 20, 20); Gamebord.add(p1이미지 );
-		p1이미지.setVisible(false);p1이미지.setVisible(true); break;
-		case 11: p1이미지.setBounds(65, 340, 20, 20); Gamebord.add(p1이미지 );
-		p1이미지.setVisible(false);p1이미지.setVisible(true); break;
-		default : break;
-		}
-	}
-	public void location2(int a) {
-		players[1]._위치 += a;
-		if(players[1]._위치 >12)
-			players[1]._위치 -= 12;
-		switch(players[1]._위치) {
-		case 0: p2이미지.setBounds(90, 175, 20, 20);Gamebord.add(p2이미지);
-		p2이미지.setVisible(false);p2이미지.setVisible(true); break;
-		case 1: p2이미지.setBounds(280, 175, 20, 20);Gamebord.add(p2이미지);
-		p2이미지.setVisible(false);p2이미지.setVisible(true); break;
-		case 2: p2이미지.setBounds(470, 175, 20, 20);Gamebord.add(p2이미지);
-		p2이미지.setVisible(false);p2이미지.setVisible(true);  break;
-		case 3: p2이미지.setBounds(660, 175, 20, 20);Gamebord.add(p2이미지);
-		p2이미지.setVisible(false);p2이미지.setVisible(true); break;
-		case 4: p2이미지.setBounds(660, 340, 20, 20);Gamebord.add(p2이미지);
-		p2이미지.setVisible(false);p2이미지.setVisible(true); break;
-		case 5: p2이미지.setBounds(660, 505, 20, 20);Gamebord.add(p2이미지);
-		p2이미지.setVisible(false);p2이미지.setVisible(true); break;
-		case 6: p2이미지.setBounds(660, 670, 20, 20);Gamebord.add(p2이미지);
-		p2이미지.setVisible(false);p2이미지.setVisible(true); break;
-		case 7: p2이미지.setBounds(470, 670, 20, 20);Gamebord.add(p2이미지);
-		p2이미지.setVisible(false);p2이미지.setVisible(true); break;
-		case 8: p2이미지.setBounds(280, 670, 20, 20);Gamebord.add(p2이미지);
-		p2이미지.setVisible(false);p2이미지.setVisible(true); break;
-		case 9: p2이미지.setBounds(90, 670, 20, 20);Gamebord.add(p2이미지);
-		p2이미지.setVisible(false);p2이미지.setVisible(true); break;
-		case 10: p2이미지.setBounds(90, 505, 20, 20);Gamebord.add(p2이미지);
-		p2이미지.setVisible(false);p2이미지.setVisible(true);break;
-		case 11: p2이미지.setBounds(90, 340, 20, 20);Gamebord.add(p2이미지);
-		p2이미지.setVisible(false);p2이미지.setVisible(true); break;
-		default : break;
-		}
-	}
-	public void location3(int a) {
-		players[2]._위치 += a;
-		if(players[2]._위치 >12)
-			players[2]._위치 -= 12;
-		switch(players[2]._위치) {
-		case 0: p3이미지.setBounds(115, 175, 20, 20);Gamebord.add(p3이미지);
-		p3이미지.setVisible(false);p3이미지.setVisible(true); break;
-		case 1: p3이미지.setBounds(305, 175, 20, 20);Gamebord.add(p3이미지); 
-		p3이미지.setVisible(false);p3이미지.setVisible(true);break;
-		case 2: p3이미지.setBounds(495, 175, 20, 20);Gamebord.add(p3이미지);
-		p3이미지.setVisible(false);p3이미지.setVisible(true);  break;
-		case 3: p3이미지.setBounds(685, 175, 20, 20);Gamebord.add(p3이미지);
-		p3이미지.setVisible(false);p3이미지.setVisible(true); break;
-		case 4: p3이미지.setBounds(685, 340, 20, 20);Gamebord.add(p3이미지); 
-		p3이미지.setVisible(false);p3이미지.setVisible(true);break;
-		case 5: p3이미지.setBounds(685, 505, 20, 20);Gamebord.add(p3이미지);
-		p3이미지.setVisible(false);p3이미지.setVisible(true); break;
-		case 6: p3이미지.setBounds(685, 670, 20, 20);Gamebord.add(p3이미지);
-		p3이미지.setVisible(false);p3이미지.setVisible(true); break;
-		case 7: p3이미지.setBounds(495, 670, 20, 20);Gamebord.add(p3이미지);
-		p3이미지.setVisible(false);p3이미지.setVisible(true); break;
-		case 8: p3이미지.setBounds(305, 670, 20, 20);Gamebord.add(p3이미지);
-		p3이미지.setVisible(false);p3이미지.setVisible(true); break;
-		case 9: p3이미지.setBounds(115, 670, 20, 20);Gamebord.add(p3이미지);
-		p3이미지.setVisible(false);p3이미지.setVisible(true); break;
-		case 10: p3이미지.setBounds(115, 505, 20, 20);Gamebord.add(p3이미지);
-		p3이미지.setVisible(false);p3이미지.setVisible(true); break;
-		case 11: p3이미지.setBounds(115, 340, 20, 20);Gamebord.add(p3이미지);
-		p3이미지.setVisible(false);p3이미지.setVisible(true); break;
-		default : break;
-		}
-	}
-	public void location4(int a) {
-		players[3]._위치 += a;
-		if(players[3]._위치 >12)
-			players[3]._위치 -= 12;
-		switch(players[3]._위치) {
-		case 0: p4이미지.setBounds(140, 175, 20, 20);Gamebord.add(p4이미지); 
-		p4이미지.setVisible(false);p4이미지.setVisible(true); break;
-		case 1: p4이미지.setBounds(330, 175, 20, 20);Gamebord.add(p4이미지); 
-		p4이미지.setVisible(false);p4이미지.setVisible(true); break;
-		case 2: p4이미지.setBounds(520, 175, 20, 20);Gamebord.add(p4이미지); 
-		p4이미지.setVisible(false);p4이미지.setVisible(true); break;
-		case 3: p4이미지.setBounds(710, 175, 20, 20);Gamebord.add(p4이미지); 
-		p4이미지.setVisible(false);p4이미지.setVisible(true); break;
-		case 4: p4이미지.setBounds(710, 340, 20, 20);Gamebord.add(p4이미지); 
-		p4이미지.setVisible(false);p4이미지.setVisible(true); break;
-		case 5: p4이미지.setBounds(710, 505, 20, 20);Gamebord.add(p4이미지); 
-		p4이미지.setVisible(false);p4이미지.setVisible(true); break;
-		case 6: p4이미지.setBounds(710, 670, 20, 20);Gamebord.add(p4이미지);  
-		p4이미지.setVisible(false);p4이미지.setVisible(true);break;
-		case 7: p4이미지.setBounds(520, 670, 20, 20);Gamebord.add(p4이미지); 
-		p4이미지.setVisible(false);p4이미지.setVisible(true); break;
-		case 8: p4이미지.setBounds(330, 670, 20, 20);Gamebord.add(p4이미지); 
-		p4이미지.setVisible(false);p4이미지.setVisible(true); break;
-		case 9: p4이미지.setBounds(140, 670, 20, 20);Gamebord.add(p4이미지); 
-		p4이미지.setVisible(false);p4이미지.setVisible(true); break;
-		case 10: p4이미지.setBounds(140, 505, 20, 20);Gamebord.add(p4이미지); 
-		p4이미지.setVisible(false);p4이미지.setVisible(true); break;
-		case 11: p4이미지.setBounds(140, 340, 20, 20);Gamebord.add(p4이미지); 
-		p4이미지.setVisible(false);p4이미지.setVisible(true); break;
-		default : break;
-		}
-	}
-	public void location5(int a) {
-		ais[0]._위치 += a;
-		if(ais[0]._위치 >12)
-			ais[0]._위치 -= 12;
-		switch(ais[0]._위치) {
-		case 0: ai1이미지.setBounds(165, 175, 20, 20);Gamebord.add(ai1이미지); 
-		ai1이미지.setVisible(false);ai1이미지.setVisible(true); break;
-		case 1: ai1이미지.setBounds(355, 175, 20, 20);Gamebord.add(ai1이미지);
-		ai1이미지.setVisible(false);ai1이미지.setVisible(true);  break;
-		case 2: ai1이미지.setBounds(545, 175, 20, 20);Gamebord.add(ai1이미지);
-		ai1이미지.setVisible(false);ai1이미지.setVisible(true);  break;
-		case 3: ai1이미지.setBounds(735, 175, 20, 20);Gamebord.add(ai1이미지);
-		ai1이미지.setVisible(false);ai1이미지.setVisible(true);  break;
-		case 4: ai1이미지.setBounds(735, 340, 20, 20);Gamebord.add(ai1이미지);
-		ai1이미지.setVisible(false);ai1이미지.setVisible(true);  break;
-		case 5: ai1이미지.setBounds(735, 505, 20, 20);Gamebord.add(ai1이미지);
-		ai1이미지.setVisible(false);ai1이미지.setVisible(true);  break;
-		case 6: ai1이미지.setBounds(735, 670, 20, 20);Gamebord.add(ai1이미지);
-		ai1이미지.setVisible(false);ai1이미지.setVisible(true);  break;
-		case 7: ai1이미지.setBounds(545, 670, 20, 20);Gamebord.add(ai1이미지);
-		ai1이미지.setVisible(false);ai1이미지.setVisible(true);  break;
-		case 8: ai1이미지.setBounds(355, 670, 20, 20);Gamebord.add(ai1이미지);
-		ai1이미지.setVisible(false);ai1이미지.setVisible(true);  break;
-		case 9: ai1이미지.setBounds(165, 670, 20, 20);Gamebord.add(ai1이미지);
-		ai1이미지.setVisible(false);ai1이미지.setVisible(true);  break;
-		case 10: ai1이미지.setBounds(165, 505, 20, 20);Gamebord.add(ai1이미지); 
-		ai1이미지.setVisible(false);ai1이미지.setVisible(true); break;
-		case 11: ai1이미지.setBounds(165, 340, 20, 20);Gamebord.add(ai1이미지); 
-		ai1이미지.setVisible(false);ai1이미지.setVisible(true); ;break;
-		default : break;
-		}
-	}
-	public void location6(int a) {
-		ais[1]._위치 += a;
-		if(ais[1]._위치 >12)
-			ais[1]._위치 -= 12;
-		switch(ais[1]._위치) {
-		case 0: ai2이미지.setBounds(190, 175, 20, 20);Gamebord.add(ai2이미지);
-		ai2이미지.setVisible(false);ai2이미지.setVisible(true);   break;
-		case 1: ai2이미지.setBounds(380, 175, 20, 20);Gamebord.add(ai2이미지);
-		ai2이미지.setVisible(false);ai2이미지.setVisible(true); break;
-		case 2: ai2이미지.setBounds(570, 175, 20, 20);Gamebord.add(ai2이미지);
-		ai2이미지.setVisible(false);ai2이미지.setVisible(true); break;
-		case 3: ai2이미지.setBounds(760, 175, 20, 20);Gamebord.add(ai2이미지);
-		ai2이미지.setVisible(false);ai2이미지.setVisible(true); break;
-		case 4: ai2이미지.setBounds(760, 340, 20, 20);Gamebord.add(ai2이미지);
-		ai2이미지.setVisible(false);ai2이미지.setVisible(true); break;
-		case 5: ai2이미지.setBounds(760, 505, 20, 20);Gamebord.add(ai2이미지);
-		ai2이미지.setVisible(false);ai2이미지.setVisible(true); break;
-		case 6: ai2이미지.setBounds(760, 670, 20, 20);Gamebord.add(ai2이미지);
-		ai2이미지.setVisible(false);ai2이미지.setVisible(true); break;
-		case 7: ai2이미지.setBounds(570, 670, 20, 20);Gamebord.add(ai2이미지); 
-		ai2이미지.setVisible(false);ai2이미지.setVisible(true);break;
-		case 8: ai2이미지.setBounds(380, 670, 20, 20);Gamebord.add(ai2이미지);
-		ai2이미지.setVisible(false);ai2이미지.setVisible(true); break;
-		case 9: ai2이미지.setBounds(190, 670, 20, 20);Gamebord.add(ai2이미지);
-		ai2이미지.setVisible(false);ai2이미지.setVisible(true); break;
-		case 10: ai2이미지.setBounds(190, 505, 20, 20);Gamebord.add(ai2이미지);
-		ai2이미지.setVisible(false);ai2이미지.setVisible(true); break;
-		case 11: ai2이미지.setBounds(190, 340, 20, 20);Gamebord.add(ai2이미지);
-		ai2이미지.setVisible(false);ai2이미지.setVisible(true); break;
-		default : break;
-		}
-	}
-	public void losetest() {
-		for(int i = 0; i< MainScreen._플레이어_수 ; i++) {
-			if(players[i]._마신량 > MainScreen._주량[i]) {
-				gamestatus1 = new JTextField(players[i]._이름+"의 패배입니다"); 
-				Gamebord.add(gamestatus1);
-				exit.setVisible(true);
-			}
-		}
-	}
 	public void mainGame() {
-		Slots[0] = new Slot("한바퀴 돌았습니다",0);
+		//create Slots with String setting, 슬롯 생성과 문자열 결합
+		Slots[0] = new Slot("한바퀴 돌았습니다",0); 
 		Slots[1] = new Slot("2잔입니다",2);
 		Slots[2] = new Slot("주사위수만틈 드세요",0);
 		Slots[3] = new Slot("무인도입니다. 1턴 쉬세요",0);
@@ -960,710 +733,696 @@ class MainGame implements Runnable{
 		Slots[10] = new Slot("주사위수만틈 드세요",0);
 		Slots[11] = new Slot("살았습니다",0);
 		
-		Gamebord.setOpaque(true);  // 라밸 백그라운드 설정
-		Gamebord.setBackground(MainScreen.c1); // 백그라운드 색 지정
-		status1.setBackground(Color.white);
-		status2.setBackground(Color.white);
-		status3.setBackground(Color.white);
-		status4.setBackground(Color.WHITE);
-		status5.setBackground(Color.WHITE);
-		status6.setBackground(Color.WHITE);
+		Gamebord.setOpaque(true);  
+		Gamebord.setBackground(defalutBackgroundColor); 
+
 		
-		MainScreen.l2.setVisible(false);
-		MainScreen.l3.setVisible(false);
 		
-		//_게임시작이미지.setBounds(200, 300, 600, 300);
-		_게임시작이미지.setBackground(MainScreen.c1);
-		MainScreen.f.add(_게임시작이미지);
-		_게임시작이미지.setVisible(true);
-		//try { Thread.sleep(2000); } catch (InterruptedException e) {} //2초 지연
-		//run();
-		//repaint();
-		//run();run();run();
-		
-		_게임시작이미지.setVisible(false);
-		/*
-		slot0.setBounds(50, 60, 180, 155);
-		slot1.setBounds(240, 60, 180, 155);
-		slot2.setBounds(430, 60, 180, 155);
-		slot3.setBounds(620, 60, 180, 155);
-		slot4.setBounds(620, 225, 180, 155);
-		slot5.setBounds(620, 390, 180, 155);
-		slot6.setBounds(620, 555, 180, 155);
-		slot7.setBounds(430, 555, 180, 155);
-		slot8.setBounds(240, 555, 180, 155);
-		slot9.setBounds(50, 555, 180, 155);
-		slot10.setBounds(50, 390, 180, 155);
-		slot11.setBounds(50, 225, 180, 155);
-		*/
-		status1.setBounds(840, 50, 100, 30);
-		status2.setBounds(840, 90, 100, 30);
-		status3.setBounds(840, 130, 100, 30);
-		status4.setBounds(840, 170, 100, 30);
-		status5.setBounds(840, 210, 100, 30);
-		status6.setBounds(840, 250, 100, 30);
-		gamestatus1.setBounds(810, 300, 175, 40);
-		gamestatus2.setBounds(810, 350, 175, 40);
-		_주사위버튼.setBounds(325, 450, 211, 63);
-		_항복버튼.setBounds(830, 655, 140, 51);
-		_주사위이미지1.setBounds(330, 240, 200, 200);
-		_주사위이미지2.setBounds(330, 240, 200, 200);
-		_주사위1.setBounds(330, 240, 200, 200);
-		_주사위2.setBounds(330, 240, 200, 200);
-		_주사위3.setBounds(330, 240, 200, 200);
-		_주사위4.setBounds(330, 240, 200, 200);
-		_주사위5.setBounds(330, 240, 200, 200);
-		_주사위6.setBounds(330, 240, 200, 200);
-		p1이미지.setBounds(65, 175, 20, 20);
-		p2이미지.setBounds(90, 175, 20, 20);
-		p3이미지.setBounds(115, 175, 20, 20);
-		p4이미지.setBounds(140, 175, 20, 20);
-		ai1이미지.setBounds(165, 175, 20, 20);
-		ai2이미지.setBounds(190, 175, 20, 20);
-		exit.setBounds(835, 550, 125, 70);
+		bottleImageLabel.setVisible(false);
+		bambooImageLabel.setVisible(false);
+
+
+
+		diceRollingButton.setBounds(325, 450, 211, 63);
+		giveUpButton.setBounds(830, 655, 140, 51);
+		diceImageLabel.setBounds(330, 240, 200, 200);
+		diceNumOneLabel.setBounds(330, 240, 200, 200);
+		diceNumTwoLabel.setBounds(330, 240, 200, 200);
+		diceNumThreeLabel.setBounds(330, 240, 200, 200);
+		diceNumFourLabel.setBounds(330, 240, 200, 200);
+		diceNumFiveLabel.setBounds(330, 240, 200, 200);
+		diceNumSixLabel.setBounds(330, 240, 200, 200);
+		player1IconLabel.setBounds(65, 175, 20, 20);
+		player2IconLabel.setBounds(90, 175, 20, 20);
+		player3IconLabel.setBounds(115, 175, 20, 20);
+		player4IconLabel.setBounds(140, 175, 20, 20);
+		AI1IconLabel.setBounds(165, 175, 20, 20);
+		AI2IconLabel.setBounds(190, 175, 20, 20);
+		exitButton.setBounds(835, 550, 125, 70);
 	
-		_주사위이미지2.setVisible(false);
-		_주사위1.setVisible(false);
-		_주사위2.setVisible(false);
-		_주사위3.setVisible(false);
-		_주사위4.setVisible(false);
-		_주사위5.setVisible(false);
-		_주사위6.setVisible(false);
-		exit.setVisible(false);
+		diceNumOneLabel.setVisible(false);
+		diceNumTwoLabel.setVisible(false);
+		diceNumThreeLabel.setVisible(false);
+		diceNumFourLabel.setVisible(false);
+		diceNumFiveLabel.setVisible(false);
+		diceNumSixLabel.setVisible(false);
+		exitButton.setVisible(false);
 	
-		_주사위버튼.setRolloverIcon(new ImageIcon("./Image/주사위굴리기버튼2.jpg")); // 버튼 눌럿을때
-		_주사위버튼.setBorderPainted(false); // 버튼 테두리 없애기
-		_항복버튼.setRolloverIcon(new ImageIcon("./Image/항복버튼2.jpg")); // 버튼 눌럿을때
-		_항복버튼.setBorderPainted(false); // 버튼 테두리 없애기
+		diceRollingButton.setRolloverIcon(new ImageIcon("./Image/주사위굴리기버튼2.jpg")); // 버튼 눌럿을때
+		diceRollingButton.setBorderPainted(false); // 버튼 테두리 없애기
+		giveUpButton.setRolloverIcon(new ImageIcon("./Image/항복버튼2.jpg")); // 버튼 눌럿을때
+		giveUpButton.setBorderPainted(false); // 버튼 테두리 없애기
+	
+		player1IconLabel.setVisible(false);
+		player2IconLabel.setVisible(false);
+		player3IconLabel.setVisible(false);
+		player4IconLabel.setVisible(false);
+		AI1IconLabel.setVisible(false);
+		AI2IconLabel.setVisible(false);
+		player1IconLabel.setVisible(true);
+		player2IconLabel.setVisible(true);
+		player3IconLabel.setVisible(true);
+		player4IconLabel.setVisible(true);
+		AI1IconLabel.setVisible(true);
+		AI2IconLabel.setVisible(true);
 		
+		Player[] players = new Player[PlayerNum]; // 플레이어 객체 생성
+		Ai[] ais = new Ai[AINum];
 		
-		Gamebord.add(p1이미지);
-		Gamebord.add(p2이미지);
-		Gamebord.add(p3이미지);
-		Gamebord.add(p4이미지);
-		Gamebord.add(ai1이미지);
-		Gamebord.add(ai2이미지);
-		/*
-		Gamebord.add(slot0);
-		Gamebord.add(slot1);
-		Gamebord.add(slot2);
-		Gamebord.add(slot3);
-		Gamebord.add(slot4);
-		Gamebord.add(slot5);
-		Gamebord.add(slot6);
-		Gamebord.add(slot7);
-		Gamebord.add(slot8);
-		Gamebord.add(slot9);
-		Gamebord.add(slot10);
-		Gamebord.add(slot11);
-		*/
-		Gamebord.add(_주사위버튼);
-		Gamebord.add(_항복버튼);
-		Gamebord.add(status1);
-		Gamebord.add(status2);
-		Gamebord.add(status3);
-		Gamebord.add(status4);
-		Gamebord.add(status5);
-		Gamebord.add(status6);
-		Gamebord.add(_주사위1);
-		Gamebord.add(_주사위2);
-		Gamebord.add(_주사위3);
-		Gamebord.add(_주사위4);
-		Gamebord.add(_주사위5);
-		Gamebord.add(_주사위6);
-		Gamebord.add(gamestatus1);
-		Gamebord.add(gamestatus2);
-		Gamebord.add(_주사위이미지1);
-		Gamebord.add(exit);
-		MainScreen.f.add(Gamebord);
-		p1이미지.setVisible(false);
-		p2이미지.setVisible(false);
-		p3이미지.setVisible(false);
-		p4이미지.setVisible(false);
-		ai1이미지.setVisible(false);
-		ai2이미지.setVisible(false);
-		p1이미지.setVisible(true);
-		p2이미지.setVisible(true);
-		p3이미지.setVisible(true);
-		p4이미지.setVisible(true);
-		ai1이미지.setVisible(true);
-		ai2이미지.setVisible(true);
-		
-		for(int i = 0; i< MainScreen._플레이어_수 ; i++) {  // 플레이어 수만큼 플레이어 객체 생성
-			players[i] = new Player(MainScreen._이름[i]);
-			players[i]._번호 = i+1;
+		for(int i = 0; i< PlayerNum ; i++) {  // 플레이어 수만큼 플레이어 객체 생성
+			players[i] = new Player(characterName[i]);
+			players[i].characterNum = i+1;
 		}
-		switch(MainScreen._플레이어_수) {
+		
+		JTextField statusOfPlayer1TextField = new JTextField(characterName[0]+" : 현재 0 잔 "); 
+		JTextField statusOfPlayer2TextField = new JTextField(characterName[1]+" : 현재 0 잔 "); 
+		JTextField statusOfPlayer3TextField = new JTextField(characterName[2]+" : 현재 0 잔 "); 
+		JTextField statusOfPlayer4TextField = new JTextField(characterName[3]+" : 현재 0 잔 "); 
+		JTextField statusOfAI1TextField = new JTextField(" AI1 : 현재 0 잔 "); 
+		JTextField statusOfAI2TextField = new JTextField(" AI2 : 현재 0 잔 "); 
+		JTextField gamestatusTextField1 = new JTextField(" 게임시작!, p1의 차례입니다. "); 
+		JTextField gamestatusTextField2 = new JTextField("주사위를 굴려주세요"); 
+		
+		statusOfPlayer1TextField.setBackground(Color.WHITE);
+		statusOfPlayer2TextField.setBackground(Color.WHITE);
+		statusOfPlayer3TextField.setBackground(Color.WHITE);
+		statusOfPlayer4TextField.setBackground(Color.WHITE);
+		statusOfPlayer1TextField.setBounds(840, 50, 100, 30);
+		statusOfPlayer2TextField.setBounds(840, 90, 100, 30);
+		statusOfPlayer3TextField.setBounds(840, 130, 100, 30);
+		statusOfPlayer4TextField.setBounds(840, 170, 100, 30);
+		statusOfAI1TextField.setBounds(840, 210, 100, 30);
+		statusOfAI2TextField.setBounds(840, 250, 100, 30);
+		gamestatusTextField1.setBounds(810, 300, 175, 40);
+		gamestatusTextField2.setBounds(810, 350, 175, 40);
+		statusOfAI2TextField.setBackground(Color.WHITE);
+		statusOfAI1TextField.setBackground(Color.WHITE);
+		
+		Gamebord.add(player1IconLabel);
+		Gamebord.add(player2IconLabel);
+		Gamebord.add(player3IconLabel);
+		Gamebord.add(player4IconLabel);
+		Gamebord.add(AI1IconLabel);
+		Gamebord.add(AI2IconLabel);
+		Gamebord.add(diceRollingButton);
+		Gamebord.add(giveUpButton);
+		Gamebord.add(statusOfPlayer1TextField);
+		Gamebord.add(statusOfPlayer2TextField);
+		Gamebord.add(statusOfPlayer3TextField);
+		Gamebord.add(statusOfPlayer4TextField);
+		Gamebord.add(statusOfAI1TextField);
+		Gamebord.add(statusOfAI2TextField);
+		Gamebord.add(diceNumOneLabel);
+		Gamebord.add(diceNumTwoLabel);
+		Gamebord.add(diceNumThreeLabel);
+		Gamebord.add(diceNumFourLabel);
+		Gamebord.add(diceNumFiveLabel);
+		Gamebord.add(diceNumSixLabel);
+		Gamebord.add(gamestatusTextField1);
+		Gamebord.add(gamestatusTextField2);
+		Gamebord.add(diceImageLabel);
+		Gamebord.add(exitButton);
+		add(Gamebord);
+		
+		switch(PlayerNum) {
 		case 1: 
-			status2.setVisible(false);status3.setVisible(false);status4.setVisible(false);
-			p2이미지.setVisible(false);p3이미지.setVisible(false);p4이미지.setVisible(false);
+			statusOfPlayer2TextField.setVisible(false);statusOfPlayer3TextField.setVisible(false);statusOfPlayer4TextField.setVisible(false);
+			player2IconLabel.setVisible(false);player3IconLabel.setVisible(false);player4IconLabel.setVisible(false);
 			break;
 		case 2: 
-			status3.setVisible(false);status4.setVisible(false); 
-			p3이미지.setVisible(false);p4이미지.setVisible(false);
+			statusOfPlayer3TextField.setVisible(false);statusOfPlayer4TextField.setVisible(false); 
+			player3IconLabel.setVisible(false);player4IconLabel.setVisible(false);
 			break;
-		case 3: status4.setVisible(false);
-			p4이미지.setVisible(false);break;
+		case 3: statusOfPlayer4TextField.setVisible(false);
+			player4IconLabel.setVisible(false);break;
 		case 4: break;
 		default: break;
 		}
 		
-		switch(MainScreen._AI_수) {
+		switch(AINum) {
 		case 0: 
-			status5.setVisible(false);status6.setVisible(false);
-			ai1이미지.setVisible(false);ai2이미지.setVisible(false);
+			statusOfAI2TextField.setVisible(false);statusOfAI1TextField.setVisible(false);
+			AI1IconLabel.setVisible(false);AI2IconLabel.setVisible(false);
 			break;
 		case 1: 
-			status6.setVisible(false);
+			statusOfAI1TextField.setVisible(false);
 			ais[0] = new Ai();
-			ais[0]._첫번째_ai생성();
-			ais[0]._번호 = MainScreen._플레이어_수+1;
-			ai2이미지.setVisible(false);
+			ais[0].firstAICreate();
+			ais[0].characterNum = PlayerNum+1;
+			AI2IconLabel.setVisible(false);
 			break;
 		case 2: 
-		ais[0] = new Ai();
-		ais[1] = new Ai();
-		ais[0]._첫번째_ai생성();
-		ais[1]._첫번째_ai생성();
-		ais[0]._번호 = MainScreen._플레이어_수+1;
-		ais[1]._번호 = MainScreen._플레이어_수+2;
-		break;
+			ais[0] = new Ai();
+			ais[1] = new Ai();
+			ais[0].firstAICreate();
+			ais[1].secondAICreate();
+			ais[0].characterNum = PlayerNum+1;
+			ais[1].characterNum = PlayerNum+2;
+			break;
 		default: break;
 		}
-		_항복버튼.addActionListener(new ActionListener() { // 백 버튼  동작 설정
+		giveUpButton.addActionListener(new ActionListener() { // 백 버튼  동작 설정
 			public void actionPerformed(ActionEvent e) {		
 				switch(turn) {
 				case 1: 
-					gamestatus1.setText("항복을 눌렀습니다.");					
-					gamestatus2.setText("p1의 패배입니다.");
-					exit.setVisible(true);
-					saveGameResult();
+					gamestatusTextField1.setText("항복을 눌렀습니다.");					
+					gamestatusTextField2.setText("p1의 패배입니다.");
+					exitButton.setVisible(true);
+					saveGameResult(players);
 					break;
 				case 2: 
-					gamestatus1.setText("항복을 눌렀습니다."); 
-					gamestatus2.setText("p2의 패배입니다."); 
-					exit.setVisible(true);
-					saveGameResult();
+					gamestatusTextField1.setText("항복을 눌렀습니다."); 
+					gamestatusTextField2.setText("p2의 패배입니다."); 
+					exitButton.setVisible(true);
+					saveGameResult(players);
 					break;
 				case 3: 
-					gamestatus1.setText("항복을 눌렀습니다."); 
-					gamestatus2.setText("p3의 패배입니다."); 
-					exit.setVisible(true);
-					saveGameResult();
+					gamestatusTextField1.setText("항복을 눌렀습니다."); 
+					gamestatusTextField2.setText("p3의 패배입니다."); 
+					exitButton.setVisible(true);
+					saveGameResult(players);
 					break;
 				case 4: 
-					gamestatus1.setText("항복을 눌렀습니다."); 
-					gamestatus2.setText("p4의 패배입니다."); 
-					exit.setVisible(true);
-					saveGameResult();
+					gamestatusTextField1.setText("항복을 눌렀습니다."); 
+					gamestatusTextField2.setText("p4의 패배입니다."); 
+					exitButton.setVisible(true);
+					saveGameResult(players);
 					break;
 				default: 
-					gamestatus1.setText("항복을 눌렀습니다."); 
-					exit.setVisible(true);
-					saveGameResult();
+					gamestatusTextField1.setText("항복을 눌렀습니다."); 
+					exitButton.setVisible(true);
+					saveGameResult(players);
 					break;
 				}
 			}});
-		_주사위버튼.addActionListener(new ActionListener() { // 백 버튼  동작 설정
+		diceRollingButton.addActionListener(new ActionListener() { // 백 버튼  동작 설정
 			public void actionPerformed(ActionEvent e) {		
-				int a = dice();
+				int diceNum = dice();
 				switch(turn) {
 				case 1: 
-					location1(a);
-					gamestatus1.setText(a+"이 나왔습니다."+Slots[players[0]._위치]._벌칙내용);
-					if(players[0]._위치 == 2 || players[0]._위치 == 7)
-						players[0]._마신량 += a;
-					else if(players[0]._위치 == 3) 
-						players[0]._무인도 = 1;
-					else if(players[0]._위치 == 9) {
-						random1 = (int)(Math.random()*11);
-						players[0]._위치 = random1;
-						location1(0);
+					players[0].characterReplace = setPlayerLocation(players[0].characterNum, players[0].characterReplace, diceNum);
+					gamestatusTextField1.setText(Integer.toString(diceNum)+"! "+Slots[players[0].characterReplace].penaltyContent);
+					if(players[0].characterReplace == 2 || players[0].characterReplace == 7)
+						players[0].characterDrink += diceNum;
+					else if(players[0].characterReplace == 3) 
+						players[0].characterIsIsland = true;
+					else if(players[0].characterReplace == 9) {
+						randomNum = (int)(Math.random()*11);
+						players[0].characterReplace = randomNum;
+						setPlayerLocation(players[0].characterNum, players[0].characterReplace, 0);
 					}
 					else
-						players[0]._마신량 += Slots[players[0]._위치]._잔추가;
-					status1.setText(MainScreen._이름[0]+" : 현재 "+players[0]._마신량+" 잔 ");
+						players[0].characterDrink += Slots[players[0].characterReplace].addGlassNum;
+					statusOfPlayer1TextField.setText(characterName[0]+" : 현재 "+players[0].characterDrink+" 잔 ");
 					
 					
-					if(MainScreen._플레이어_수 > 1) {
-						if(players[1]._무인도 == 1) {
-							gamestatus2.setText(players[1]._이름+" 무인도에 갇혀 한턴 쉽니다.");
-							if(turn == (MainScreen._플레이어_수 + MainScreen._AI_수)) 
+					if(PlayerNum > 1) {
+						if(players[1].characterIsIsland == true) {
+							gamestatusTextField2.setText(players[1].characterName+" 무인도에 갇혀 한턴 쉽니다.");
+							if(turn == (PlayerNum + AINum)) 
 								turn = 1;
 							else
 								turn += 1;
-							players[1]._무인도 = 0;
+							players[1].characterIsIsland = false;
 						}
 						else
-							gamestatus2.setText("p2 차례, 주사위를 굴려주세요");
+							gamestatusTextField2.setText("p2 차례, 주사위를 굴려주세요");
 					}
-					else if(MainScreen._플레이어_수 == 1 && MainScreen._AI_수 > 0)
-						if(ais[0]._무인도 == 1) {
-							gamestatus2.setText("Ai1"+" 무인도에 갇혀 한턴 쉽니다.");
-							if(turn == (MainScreen._플레이어_수 + MainScreen._AI_수)) 
+					else if(PlayerNum == 1 && AINum > 0)
+						if(ais[0].characterIsIsland == true) {
+							gamestatusTextField2.setText("Ai1"+" 무인도에 갇혀 한턴 쉽니다.");
+							if(turn == (PlayerNum + AINum)) 
 								turn = 1;
 							else
 								turn += 1;
-							ais[0]._무인도 = 0;
+							ais[0].characterIsIsland = false;
 						}
 						else
-							gamestatus2.setText("ai1 차례, 주사위를 굴려주세요");
+							gamestatusTextField2.setText("ai1 차례, 주사위를 굴려주세요");
 					else {
-						if(players[0]._무인도 == 1) {
-							gamestatus2.setText(players[0]._이름+" 무인도에 갇혀 한턴 쉽니다.");
-							if(turn == (MainScreen._플레이어_수 + MainScreen._AI_수)) 
+						if(players[0].characterIsIsland == true) {
+							gamestatusTextField2.setText(players[0].characterName+" 무인도에 갇혀 한턴 쉽니다.");
+							if(turn == (PlayerNum + AINum)) 
 								turn = 1;
 							else
 								turn += 1;
-							players[0]._무인도 = 0;
+							players[0].characterIsIsland = false;
 						}
 						else
-							gamestatus2.setText("p1 차례, 주사위를 굴려주세요");
+							gamestatusTextField2.setText("p1 차례, 주사위를 굴려주세요");
 					}
-					if(turn == (MainScreen._플레이어_수 + MainScreen._AI_수)) 
+					if(turn == (PlayerNum + AINum)) 
 						turn = 1;
 					else
 						turn += 1;
-					
-					losetest();
+					if(loseTest(players)) {
+						gamestatusTextField1.setVisible(false);
+						gamestatusTextField2.setVisible(false);
+					}
 					break;
 				case 2: 
-					if(MainScreen._플레이어_수 > 1) {
-						location2(a);
-						gamestatus1.setText(a+"이 나왔습니다."+Slots[players[1]._위치]._벌칙내용);
-						if(players[1]._위치 == 2 || players[1]._위치 == 7)
-							players[1]._마신량 += a;
-						else if(players[1]._위치 == 3) 
-							players[1]._무인도 = 1;
-						else if(players[1]._위치 == 9) {
-							random1 = (int)(Math.random()*11);
-							players[1]._위치 = random1;
-							location2(0);
+					if(PlayerNum > 1) {
+						players[1].characterReplace = setPlayerLocation(players[1].characterNum, players[1].characterReplace, diceNum);
+						gamestatusTextField1.setText(Integer.toString(diceNum)+"! "+Slots[players[1].characterReplace].penaltyContent);
+						if(players[1].characterReplace == 2 || players[1].characterReplace == 7)
+							players[1].characterDrink += diceNum;
+						else if(players[1].characterReplace == 3) 
+							players[1].characterIsIsland = true;
+						else if(players[1].characterReplace == 9) {
+							randomNum = (int)(Math.random()*11);
+							players[1].characterReplace = randomNum;
+							setPlayerLocation(players[1].characterNum, players[1].characterReplace, 0);
 						}
 						else
-							players[1]._마신량 += Slots[players[1]._위치]._잔추가;
-						status2.setText(MainScreen._이름[1]+" : 현재 "+players[1]._마신량+" 잔 ");
+							players[1].characterDrink += Slots[players[1].characterReplace].addGlassNum;
+						statusOfPlayer2TextField.setText(characterName[1]+" : 현재 "+players[1].characterDrink+" 잔 ");
 						
-						if(MainScreen._플레이어_수 > 2 )
-							if(players[2]._무인도 == 1) {
-								gamestatus2.setText(players[2]._이름+" 무인도에 갇혀 한턴 쉽니다.");
-								if(turn == (MainScreen._플레이어_수 + MainScreen._AI_수)) 
+						if(PlayerNum > 2 )
+							if(players[2].characterIsIsland == true) {
+								gamestatusTextField2.setText(players[2].characterName+" 무인도에 갇혀 한턴 쉽니다.");
+								if(turn == (PlayerNum + AINum)) 
 									turn = 1;
 								else
 									turn += 1;
-								players[2]._무인도 = 0;
+								players[2].characterIsIsland = false;
 							}
 							else
-								gamestatus2.setText("p3 차례, 주사위를 굴려주세요");
-						else if(MainScreen._플레이어_수 == 2 && MainScreen._AI_수 > 0)
-							if(ais[0]._무인도 == 1) {
-								gamestatus2.setText("Ai1"+" 무인도에 갇혀 한턴 쉽니다.");
-								if(turn == (MainScreen._플레이어_수 + MainScreen._AI_수)) 
+								gamestatusTextField2.setText("p3 차례, 주사위를 굴려주세요");
+						else if(PlayerNum == 2 && AINum > 0)
+							if(ais[0].characterIsIsland == true) {
+								gamestatusTextField2.setText("Ai1"+" 무인도에 갇혀 한턴 쉽니다.");
+								if(turn == (PlayerNum + AINum)) 
 									turn = 1;
 								else
 									turn += 1;
-								ais[0]._무인도 = 0;
+								ais[0].characterIsIsland = false;
 							}
 							else
-								gamestatus2.setText("ai1 차례, 주사위를 굴려주세요");
-						else if(MainScreen._플레이어_수 == 2 && MainScreen._AI_수 == 0)
-							if(players[0]._무인도 == 1) {
-								gamestatus2.setText(players[0]._이름+" 무인도에 갇혀 한턴 쉽니다.");
-								if(turn == (MainScreen._플레이어_수 + MainScreen._AI_수)) 
+								gamestatusTextField2.setText("ai1 차례, 주사위를 굴려주세요");
+						else if(PlayerNum == 2 && AINum == 0)
+							if(players[0].characterIsIsland == true) {
+								gamestatusTextField2.setText(players[0].characterName+" 무인도에 갇혀 한턴 쉽니다.");
+								if(turn == (PlayerNum + AINum)) 
 									turn = 1;
 								else
 									turn += 1;
-								players[0]._무인도 = 0;
+								players[0].characterIsIsland = false;
 							}
 							else
-								gamestatus2.setText("p1 차례, 주사위를 굴려주세요");
+								gamestatusTextField2.setText("p1 차례, 주사위를 굴려주세요");
 						}
 					else {
-						location5(a);
-						gamestatus1.setText(a+"이 나왔습니다."+Slots[ais[0]._위치]._벌칙내용);
-						if(ais[0]._위치 == 2 || ais[0]._위치 == 7)
-							ais[0]._마신량 += a;
-						else if(ais[0]._위치 == 3) 
-							ais[0]._무인도 = 1;
-						else if(ais[0]._위치 == 9) {
-							random1 = (int)(Math.random()*11);
-							ais[0]._위치 = random1;
-							location5(0);
+						ais[0].characterReplace = setPlayerLocation(ais[0].characterNum, ais[0].characterReplace, diceNum);
+						gamestatusTextField1.setText(Integer.toString(diceNum)+"! "+Slots[ais[0].characterReplace].penaltyContent);
+						if(ais[0].characterReplace == 2 || ais[0].characterReplace == 7)
+							ais[0].characterDrink += diceNum;
+						else if(ais[0].characterReplace == 3) 
+							ais[0].characterIsIsland = true;
+						else if(ais[0].characterReplace == 9) {
+							randomNum = (int)(Math.random()*11);
+							ais[0].characterReplace = randomNum;
+							setPlayerLocation(ais[0].characterNum, ais[0].characterReplace, 0);
 						}
 						else
-							ais[0]._마신량 += Slots[ais[0]._위치]._잔추가;
-						status5.setText("Ai1 : 현재 "+ais[0]._마신량+" 잔 ");
+							ais[0].characterDrink += Slots[ais[0].characterReplace].addGlassNum;
+						statusOfAI1TextField.setText("Ai1 : 현재 "+ais[0].characterDrink+" 잔 ");
 						
-						if(MainScreen._AI_수 == 1) 
-							if(players[0]._무인도 == 1) {
-								gamestatus2.setText(players[0]._이름+" 무인도에 갇혀 한턴 쉽니다.");
-								if(turn == (MainScreen._플레이어_수 + MainScreen._AI_수)) 
+						if(AINum == 1) 
+							if(players[0].characterIsIsland == true) {
+								gamestatusTextField2.setText(players[0].characterName+" 무인도에 갇혀 한턴 쉽니다.");
+								if(turn == (PlayerNum + AINum)) 
 									turn = 1;
 								else
 									turn += 1;
-								players[0]._무인도 = 0;
+								players[0].characterIsIsland = false;
 							}
 							else
-								gamestatus2.setText("p1 차례, 주사위를 굴려주세요");
+								gamestatusTextField2.setText("p1 차례, 주사위를 굴려주세요");
 						else {
-							if(ais[1]._무인도 == 1) {
-								gamestatus2.setText("Ai2"+" 무인도에 갇혀 한턴 쉽니다.");
-								if(turn == (MainScreen._플레이어_수 + MainScreen._AI_수)) 
+							if(ais[1].characterIsIsland == true) {
+								gamestatusTextField2.setText("Ai2"+" 무인도에 갇혀 한턴 쉽니다.");
+								if(turn == (PlayerNum + AINum)) 
 									turn = 1;
 								else
 									turn += 1;
-								ais[1]._무인도 = 0;
+								ais[1].characterIsIsland = false;
 							}
 							else
-								gamestatus2.setText("ai2 차례, 주사위를 굴려주세요");
+								gamestatusTextField2.setText("ai2 차례, 주사위를 굴려주세요");
 						}
 					}
-					if(turn == (MainScreen._플레이어_수 + MainScreen._AI_수)) 
+					if(turn == (PlayerNum + AINum)) 
 						turn = 1;
 					else
 						turn += 1;
-					
-					losetest();
+					if(loseTest(players)) {
+						gamestatusTextField1.setVisible(false);
+						gamestatusTextField2.setVisible(false);
+					}
 					break;
 				case 3:
-					if(MainScreen._플레이어_수 > 2) {
-						location3(a);
-						gamestatus1.setText(a+"이 나왔습니다."+Slots[players[2]._위치]._벌칙내용);
-						if(players[2]._위치 == 2 || players[2]._위치 == 7)
-							players[2]._마신량 += a;
-						else if(players[2]._위치 == 3) 
-							players[2]._무인도 = 1;
-						else if(players[2]._위치 == 9) {
-							random1 = (int)(Math.random()*11);
-							players[2]._위치 = random1;
-							location3(0);
-						}
+					if(PlayerNum > 2) {
+						players[2].characterReplace = setPlayerLocation(players[2].characterNum, players[2].characterReplace, diceNum);
+						gamestatusTextField1.setText(Integer.toString(diceNum)+"! "+Slots[players[2].characterReplace].penaltyContent);
+						if(players[2].characterReplace == 2 || players[2].characterReplace == 7)
+							players[2].characterDrink += diceNum;
+						else if(players[2].characterReplace == 3) 
+							players[2].characterIsIsland = true;
+						else if(players[2].characterReplace == 9) {
+							randomNum = (int)(Math.random()*11);
+							players[2].characterReplace = randomNum;
+							setPlayerLocation(players[2].characterNum, players[2].characterReplace, 0);						
+							}
 						else
-							players[2]._마신량 += Slots[players[2]._위치]._잔추가;
-						status3.setText(MainScreen._이름[2]+" : 현재 "+players[2]._마신량+" 잔 ");
+							players[2].characterDrink += Slots[players[2].characterReplace].addGlassNum;
+						statusOfPlayer3TextField.setText(characterName[2]+" : 현재 "+players[2].characterDrink+" 잔 ");
 						
-						if(MainScreen._플레이어_수 > 3) {
-							if(players[3]._무인도 == 1) {
-								gamestatus2.setText(players[3]._이름+" 무인도에 갇혀 한턴 쉽니다.");
-								if(turn == (MainScreen._플레이어_수 + MainScreen._AI_수)) 
+						if(PlayerNum > 3) {
+							if(players[3].characterIsIsland == true) {
+								gamestatusTextField2.setText(players[3].characterName+" 무인도에 갇혀 한턴 쉽니다.");
+								if(turn == (PlayerNum + AINum)) 
 									turn = 1;
 								else
 									turn += 1;
-								players[3]._무인도 = 0;
+								players[3].characterIsIsland = false;
 							}
 							else
-								gamestatus2.setText("p4 차례, 주사위를 굴려주세요");
+								gamestatusTextField2.setText("p4 차례, 주사위를 굴려주세요");
 						}
-						else if(MainScreen._AI_수 > 0) {
-							if(ais[0]._무인도 == 1) {
-								gamestatus2.setText("Ai1"+" 무인도에 갇혀 한턴 쉽니다.");
-								if(turn == (MainScreen._플레이어_수 + MainScreen._AI_수)) 
+						else if(AINum > 0) {
+							if(ais[0].characterIsIsland == true) {
+								gamestatusTextField2.setText("Ai1"+" 무인도에 갇혀 한턴 쉽니다.");
+								if(turn == (PlayerNum + AINum)) 
 									turn = 1;
 								else
 									turn += 1;
-								ais[0]._무인도 = 0;
+								ais[0].characterIsIsland = false;
 							}
 							else
-								gamestatus2.setText("ai1 차례, 주사위를 굴려주세요");
+								gamestatusTextField2.setText("ai1 차례, 주사위를 굴려주세요");
 						}
-						else if(MainScreen._AI_수 == 0) {
-							if(players[0]._무인도 == 1) {
-								gamestatus2.setText(players[0]._이름+" 무인도에 갇혀 한턴 쉽니다.");
-								if(turn == (MainScreen._플레이어_수 + MainScreen._AI_수)) 
+						else if(AINum == 0) {
+							if(players[0].characterIsIsland == true) {
+								gamestatusTextField2.setText(players[0].characterName+" 무인도에 갇혀 한턴 쉽니다.");
+								if(turn == (PlayerNum + AINum)) 
 									turn = 1;
 								else
 									turn += 1;
-								players[0]._무인도 = 0;
+								players[0].characterIsIsland = false;
 							}
 							else
-								gamestatus2.setText("p1 차례, 주사위를 굴려주세요");
+								gamestatusTextField2.setText("p1 차례, 주사위를 굴려주세요");
 						}
 					}
-					else if(MainScreen._플레이어_수 == 2) {
-						location5(a);
-						gamestatus1.setText(a+"이 나왔습니다."+Slots[ais[0]._위치]._벌칙내용);
-						if(ais[0]._위치 == 2 || ais[0]._위치 == 7)
-							ais[0]._마신량 += a;
-						else if(ais[0]._위치 == 3) 
-							ais[0]._무인도 = 1;
-						else if(ais[0]._위치 == 9) {
-							random1 = (int)(Math.random()*11);
-							ais[0]._위치 = random1;
-							location5(0);
+					else if(PlayerNum == 2) {
+						ais[0].characterReplace = setPlayerLocation(ais[0].characterNum, ais[0].characterReplace, diceNum);
+						gamestatusTextField1.setText(Integer.toString(diceNum)+"! "+Slots[ais[0].characterReplace].penaltyContent);
+						if(ais[0].characterReplace == 2 || ais[0].characterReplace == 7)
+							ais[0].characterDrink += diceNum;
+						else if(ais[0].characterReplace == 3) 
+							ais[0].characterIsIsland = true;
+						else if(ais[0].characterReplace == 9) {
+							randomNum = (int)(Math.random()*11);
+							ais[0].characterReplace = randomNum;
+							setPlayerLocation(ais[0].characterNum, ais[0].characterReplace, 0);
 						}
 						else
-							ais[0]._마신량 += Slots[ais[0]._위치]._잔추가;
-						status5.setText("Ai1 : 현재 "+ais[0]._마신량+" 잔 ");
+							ais[0].characterDrink += Slots[ais[0].characterReplace].addGlassNum;
+						statusOfAI1TextField.setText("Ai1 : 현재 "+ais[0].characterDrink+" 잔 ");
 						
-						if(MainScreen._AI_수 == 1) {
-							if(players[0]._무인도 == 1) {
-								gamestatus2.setText(players[0]._이름+" 무인도에 갇혀 한턴 쉽니다.");
-								if(turn == (MainScreen._플레이어_수 + MainScreen._AI_수)) 
+						if(AINum == 1) {
+							if(players[0].characterIsIsland == true) {
+								gamestatusTextField2.setText(players[0].characterName+" 무인도에 갇혀 한턴 쉽니다.");
+								if(turn == (PlayerNum + AINum)) 
 									turn = 1;
 								else
 									turn += 1;
-								players[0]._무인도 = 0;
+								players[0].characterIsIsland = false;
 							}
 							else
-								gamestatus2.setText("p1 차례, 주사위를 굴려주세요");
+								gamestatusTextField2.setText("p1 차례, 주사위를 굴려주세요");
 						}
 						else {
-							if(ais[1]._무인도 == 1) {
-								gamestatus2.setText("Ai2"+" 무인도에 갇혀 한턴 쉽니다.");
-								if(turn == (MainScreen._플레이어_수 + MainScreen._AI_수)) 
+							if(ais[1].characterIsIsland == true) {
+								gamestatusTextField2.setText("Ai2"+" 무인도에 갇혀 한턴 쉽니다.");
+								if(turn == (PlayerNum + AINum)) 
 									turn = 1;
 								else
 									turn += 1;
-								ais[1]._무인도 = 0;
+								ais[1].characterIsIsland = false;
 							}
 							else
-								gamestatus2.setText("ai2 차례, 주사위를 굴려주세요");
+								gamestatusTextField2.setText("ai2 차례, 주사위를 굴려주세요");
 						}
 					}
-					else if(MainScreen._플레이어_수 == 1) {
-						location6(a);
-						gamestatus1.setText(a+"이 나왔습니다."+Slots[ais[1]._위치]._벌칙내용);
-						if(ais[1]._위치 == 2 || ais[1]._위치 == 7)
-							ais[1]._마신량 += a;
-						else if(ais[1]._위치 == 3) 
-							ais[1]._무인도 = 1;
-						else if(ais[1]._위치 == 9) {
-							random1 = (int)(Math.random()*11);
-							ais[1]._위치 = random1;
-							location6(0);
-						}
+					else if(PlayerNum == 1) {
+						ais[1].characterReplace = setPlayerLocation(ais[1].characterNum, ais[1].characterReplace, diceNum);
+						gamestatusTextField1.setText(Integer.toString(diceNum)+"! "+Slots[ais[1].characterReplace].penaltyContent);
+						if(ais[1].characterReplace == 2 || ais[1].characterReplace == 7)
+							ais[1].characterDrink += diceNum;
+						else if(ais[1].characterReplace == 3) 
+							ais[1].characterIsIsland = true;
+						else if(ais[1].characterReplace == 9) {
+							randomNum = (int)(Math.random()*11);
+							ais[1].characterReplace = randomNum;
+							setPlayerLocation(ais[1].characterNum, ais[1].characterReplace, 0);						}
 						else
-							ais[1]._마신량 += Slots[ais[1]._위치]._잔추가;
-						status5.setText("Ai2 : 현재 "+ais[1]._마신량+" 잔 ");
-						if(players[0]._무인도 == 1) {
-							gamestatus2.setText(players[0]._이름+" 무인도에 갇혀 한턴 쉽니다.");
-							if(turn == (MainScreen._플레이어_수 + MainScreen._AI_수)) 
+							ais[1].characterDrink += Slots[ais[1].characterReplace].addGlassNum;
+						statusOfAI2TextField.setText("Ai2 : 현재 "+ais[1].characterDrink+" 잔 ");
+						if(players[0].characterIsIsland == true) {
+							gamestatusTextField2.setText(players[0].characterName+" 무인도에 갇혀 한턴 쉽니다.");
+							if(turn == (PlayerNum + AINum)) 
 								turn = 1;
 							else
 								turn += 1;
-							players[0]._무인도 = 0;
+							players[0].characterIsIsland = false;
 						}
 						else
-							gamestatus2.setText("p1 차례, 주사위를 굴려주세요");
+							gamestatusTextField2.setText("p1 차례, 주사위를 굴려주세요");
 					}
-					if(turn == (MainScreen._플레이어_수 + MainScreen._AI_수)) 
+					if(turn == (PlayerNum + AINum)) 
 						turn = 1;
 					else
 						turn += 1;
-						
-					losetest();
+					if(loseTest(players)) {
+						gamestatusTextField1.setVisible(false);
+						gamestatusTextField2.setVisible(false);
+					}
 					break;
 				case 4: 
-					if(MainScreen._플레이어_수 > 3) {
-						location4(a);
-						gamestatus1.setText(a+"이 나왔습니다."+Slots[players[3]._위치]._벌칙내용);
-						if(players[3]._위치 == 2 || players[3]._위치 == 7)
-							players[3]._마신량 += a;
-						else if(players[3]._위치 == 3) 
-							players[3]._무인도 = 1;
-						else if(players[3]._위치 == 9) {
-							random1 = (int)(Math.random()*11);
-							players[3]._위치 = random1;
-							location4(0);
+					if(PlayerNum > 3) {
+						players[3].characterReplace = setPlayerLocation(players[3].characterNum, players[3].characterReplace, diceNum);
+						gamestatusTextField1.setText(Integer.toString(diceNum)+"! "+Slots[players[3].characterReplace].penaltyContent);
+						if(players[3].characterReplace == 2 || players[3].characterReplace == 7)
+							players[3].characterDrink += diceNum;
+						else if(players[3].characterReplace == 3) 
+							players[3].characterIsIsland = true;
+						else if(players[3].characterReplace == 9) {
+							randomNum = (int)(Math.random()*11);
+							players[3].characterReplace = randomNum;
+							setPlayerLocation(players[3].characterNum, players[3].characterReplace, 0);
 						}
 						else
-							players[3]._마신량 += Slots[players[3]._위치]._잔추가;
-						status4.setText(MainScreen._이름[3]+" : 현재 "+players[3]._마신량+" 잔 ");
-						if(MainScreen._AI_수 > 0) {
-							if(ais[0]._무인도 == 1) {
-								gamestatus2.setText("Ai1"+" 무인도에 갇혀 한턴 쉽니다.");
-								if(turn == (MainScreen._플레이어_수 + MainScreen._AI_수)) 
+							players[3].characterDrink += Slots[players[3].characterReplace].addGlassNum;
+						statusOfPlayer4TextField.setText(characterName[3]+" : 현재 "+players[3].characterDrink+" 잔 ");
+						if(AINum > 0) {
+							if(ais[0].characterIsIsland == true) {
+								gamestatusTextField2.setText("Ai1"+" 무인도에 갇혀 한턴 쉽니다.");
+								if(turn == (PlayerNum + AINum)) 
 									turn = 1;
 								else
 									turn += 1;
-								ais[0]._무인도 = 0;
+								ais[0].characterIsIsland = false;
 							}
 							else
-								gamestatus2.setText("ai1 차례, 주사위를 굴려주세요");
+								gamestatusTextField2.setText("ai1 차례, 주사위를 굴려주세요");
 						}
 						else {
-							if(players[0]._무인도 == 1) {
-								gamestatus2.setText(players[0]._이름+" 무인도에 갇혀 한턴 쉽니다.");
-								if(turn == (MainScreen._플레이어_수 + MainScreen._AI_수)) 
+							if(players[0].characterIsIsland == true) {
+								gamestatusTextField2.setText(players[0].characterName+" 무인도에 갇혀 한턴 쉽니다.");
+								if(turn == (PlayerNum + AINum)) 
 									turn = 1;
 								else
 									turn += 1;
-								players[0]._무인도 = 0;
+								players[0].characterIsIsland = false;
 							}
 							else
-								gamestatus2.setText("p1 차례, 주사위를 굴려주세요");
+								gamestatusTextField2.setText("p1 차례, 주사위를 굴려주세요");
 						}
 					}
-					else if(MainScreen._플레이어_수 == 3) {
-						location5(a);
-						gamestatus1.setText(a+"이 나왔습니다."+Slots[ais[0]._위치]._벌칙내용);
-						if(ais[0]._위치 == 2 || ais[0]._위치 == 7)
-							ais[0]._마신량 += a;
-						else if(ais[0]._위치 == 3) 
-							ais[0]._무인도 = 1;
-						else if(ais[0]._위치 == 9) {
-							random1 = (int)(Math.random()*11);
-							ais[0]._위치 = random1;
-							location5(0);
+					else if(PlayerNum == 3) {
+						ais[0].characterReplace = setPlayerLocation(ais[0].characterNum, ais[0].characterReplace, diceNum);
+						gamestatusTextField1.setText(Integer.toString(diceNum)+"! "+Slots[ais[0].characterReplace].penaltyContent);
+						if(ais[0].characterReplace == 2 || ais[0].characterReplace == 7)
+							ais[0].characterDrink += diceNum;
+						else if(ais[0].characterReplace == 3) 
+							ais[0].characterIsIsland = true;
+						else if(ais[0].characterReplace == 9) {
+							randomNum = (int)(Math.random()*11);
+							ais[0].characterReplace = randomNum;
+							setPlayerLocation(ais[0].characterNum, ais[0].characterReplace, 0);
 						}
 						else
-							ais[0]._마신량 += Slots[ais[0]._위치]._잔추가;
-						status5.setText("Ai1 : 현재 "+ais[0]._마신량+" 잔 ");
-						if(MainScreen._AI_수 == 1) {
-							if(players[0]._무인도 == 1) {
-								gamestatus2.setText(players[0]._이름+" 무인도에 갇혀 한턴 쉽니다.");
-								if(turn == (MainScreen._플레이어_수 + MainScreen._AI_수)) 
+							ais[0].characterDrink += Slots[ais[0].characterReplace].addGlassNum;
+						statusOfAI1TextField.setText("Ai1 : 현재 "+ais[0].characterDrink+" 잔 ");
+						if(AINum == 1) {
+							if(players[0].characterIsIsland == true) {
+								gamestatusTextField2.setText(players[0].characterName+" 무인도에 갇혀 한턴 쉽니다.");
+								if(turn == (PlayerNum + AINum)) 
 									turn = 1;
 								else
 									turn += 1;
-								players[0]._무인도 = 0;
+								players[0].characterIsIsland = false;
 							}
 							else
-								gamestatus2.setText("p1 차례, 주사위를 굴려주세요");
+								gamestatusTextField2.setText("p1 차례, 주사위를 굴려주세요");
 						}
 						else {
-							if(ais[1]._무인도 == 1) {
-								gamestatus2.setText("Ai2"+" 무인도에 갇혀 한턴 쉽니다.");
-								if(turn == (MainScreen._플레이어_수 + MainScreen._AI_수)) 
+							if(ais[1].characterIsIsland == true) {
+								gamestatusTextField2.setText("Ai2"+" 무인도에 갇혀 한턴 쉽니다.");
+								if(turn == (PlayerNum + AINum)) 
 									turn = 1;
 								else
 									turn += 1;
-								ais[1]._무인도 = 0;
+								ais[1].characterIsIsland = false;
 							}
 							else
-								gamestatus2.setText("ai2 차례, 주사위를 굴려주세요");
+								gamestatusTextField2.setText("ai2 차례, 주사위를 굴려주세요");
 						}
 					}
-					else if(MainScreen._플레이어_수 == 2) {
-						location6(a);
-						gamestatus1.setText(a+"이 나왔습니다."+Slots[ais[1]._위치]._벌칙내용);
-						if(ais[1]._위치 == 2 || ais[1]._위치 == 7)
-							ais[1]._마신량 += a;
-						else if(ais[1]._위치 == 3) 
-							ais[1]._무인도 = 1;
-						else if(ais[1]._위치 == 9) {
-							random1 = (int)(Math.random()*11);
-							ais[1]._위치 = random1;
-							location6(0);
+					else if(PlayerNum == 2) {
+						ais[1].characterReplace = setPlayerLocation(ais[1].characterNum, ais[1].characterReplace, diceNum);
+						gamestatusTextField1.setText(Integer.toString(diceNum)+"! "+Slots[ais[1].characterReplace].penaltyContent);
+						if(ais[1].characterReplace == 2 || ais[1].characterReplace == 7)
+							ais[1].characterDrink += diceNum;
+						else if(ais[1].characterReplace == 3) 
+							ais[1].characterIsIsland = true;
+						else if(ais[1].characterReplace == 9) {
+							randomNum = (int)(Math.random()*11);
+							ais[1].characterReplace = randomNum;
+							setPlayerLocation(ais[1].characterNum, ais[1].characterReplace, 0);
 						}
 						else
-							ais[1]._마신량 += Slots[ais[1]._위치]._잔추가;
-						status5.setText("Ai2 : 현재 "+ais[1]._마신량+" 잔 ");
-						if(players[0]._무인도 == 1) {
-							gamestatus2.setText(players[0]._이름+" 무인도에 갇혀 한턴 쉽니다.");
-							if(turn == (MainScreen._플레이어_수 + MainScreen._AI_수)) 
+							ais[1].characterDrink += Slots[ais[1].characterReplace].addGlassNum;
+						statusOfAI2TextField.setText("Ai2 : 현재 "+ais[1].characterDrink+" 잔 ");
+						if(players[0].characterIsIsland == true) {
+							gamestatusTextField2.setText(players[0].characterName+" 무인도에 갇혀 한턴 쉽니다.");
+							if(turn == (PlayerNum + AINum)) 
 								turn = 1;
 							else
 								turn += 1;
-							players[0]._무인도 = 0;
+							players[0].characterIsIsland = false;
 						}
 						else
-							gamestatus2.setText("p1 차례, 주사위를 굴려주세요");
+							gamestatusTextField2.setText("p1 차례, 주사위를 굴려주세요");
 					}
-					if(turn == (MainScreen._플레이어_수 + MainScreen._AI_수)) 
+					if(turn == (PlayerNum + AINum)) 
 						turn = 1;
 					else
 						turn += 1;
-					losetest();
+					if(loseTest(players)) {
+						gamestatusTextField1.setVisible(false);
+						gamestatusTextField2.setVisible(false);
+					}
 					break;
 				case 5: 
-					if(MainScreen._플레이어_수 == 4) {
-						location5(a);
-						gamestatus1.setText(a+"이 나왔습니다."+Slots[ais[0]._위치]._벌칙내용);
-						if(ais[0]._위치 == 2 || ais[0]._위치 == 7)
-							ais[0]._마신량 += a;
-						else if(ais[0]._위치 == 3) 
-							ais[0]._무인도 = 1;
-						else if(ais[0]._위치 == 9) {
-							random1 = (int)(Math.random()*11);
-							ais[0]._위치 = random1;
-							location5(0);
+					if(PlayerNum == 4) {
+						ais[0].characterReplace = setPlayerLocation(ais[0].characterNum, ais[0].characterReplace, diceNum);
+						gamestatusTextField1.setText(Integer.toString(diceNum)+"! "+Slots[ais[0].characterReplace].penaltyContent);
+						if(ais[0].characterReplace == 2 || ais[0].characterReplace == 7)
+							ais[0].characterDrink += diceNum;
+						else if(ais[0].characterReplace == 3) 
+							ais[0].characterIsIsland = true;
+						else if(ais[0].characterReplace == 9) {
+							randomNum = (int)(Math.random()*11);
+							ais[0].characterReplace = randomNum;
+							setPlayerLocation(ais[0].characterNum, ais[0].characterReplace, 0);
 						}
 						else
-							ais[0]._마신량 += Slots[ais[0]._위치]._잔추가;
-						status5.setText("Ai1 : 현재 "+ais[0]._마신량+" 잔 ");
-						if(MainScreen._AI_수 == 2) {
-							if(ais[1]._무인도 == 1) {
-								gamestatus2.setText("Ai2"+" 무인도에 갇혀 한턴 쉽니다.");
-								if(turn == (MainScreen._플레이어_수 + MainScreen._AI_수)) 
+							ais[0].characterDrink += Slots[ais[0].characterReplace].addGlassNum;
+						statusOfAI1TextField.setText("Ai1 : 현재 "+ais[0].characterDrink+" 잔 ");
+						if(AINum == 2) {
+							if(ais[1].characterIsIsland == true) {
+								gamestatusTextField2.setText("Ai2"+" 무인도에 갇혀 한턴 쉽니다.");
+								if(turn == (PlayerNum + AINum)) 
 									turn = 1;
 								else
 									turn += 1;
-								ais[1]._무인도 = 0;
+								ais[1].characterIsIsland = false;
 							}
 							else	
-								gamestatus2.setText("ai2 차례, 주사위를 굴려주세요");
+								gamestatusTextField2.setText("ai2 차례, 주사위를 굴려주세요");
 						}
 						else {
-							if(players[0]._무인도 == 1) {
-								gamestatus2.setText(players[0]._이름+" 무인도에 갇혀 한턴 쉽니다.");
-								if(turn == (MainScreen._플레이어_수 + MainScreen._AI_수)) 
+							if(players[0].characterIsIsland == true) {
+								gamestatusTextField2.setText(players[0].characterName+" 무인도에 갇혀 한턴 쉽니다.");
+								if(turn == (PlayerNum + AINum)) 
 									turn = 1;
 								else
 									turn += 1;
-								players[0]._무인도 = 0;
+								players[0].characterIsIsland = false;
 							}
 							else
-								gamestatus2.setText("p1 차례, 주사위를 굴려주세요");
+								gamestatusTextField2.setText("p1 차례, 주사위를 굴려주세요");
 						}
 					}
-					else if(MainScreen._플레이어_수 == 3) {
-						location6(a);
-						gamestatus1.setText(a+"이 나왔습니다."+Slots[ais[1]._위치]._벌칙내용);
-						if(ais[1]._위치 == 2 || ais[1]._위치 == 7)
-							ais[1]._마신량 += a;
-						else if(ais[1]._위치 == 3) 
-							ais[1]._무인도 = 1;
-						else if(ais[1]._위치 == 9) {
-							random1 = (int)(Math.random()*11);
-							ais[1]._위치 = random1;
-							location6(0);
+					else if(PlayerNum == 3) {
+						ais[1].characterReplace = setPlayerLocation(ais[1].characterNum, ais[1].characterReplace, diceNum);
+						gamestatusTextField1.setText(Integer.toString(diceNum)+"! "+Slots[ais[1].characterReplace].penaltyContent);
+						if(ais[1].characterReplace == 2 || ais[1].characterReplace == 7)
+							ais[1].characterDrink += diceNum;
+						else if(ais[1].characterReplace == 3) 
+							ais[1].characterIsIsland = true;
+						else if(ais[1].characterReplace == 9) {
+							randomNum = (int)(Math.random()*11);
+							ais[1].characterReplace = randomNum;
+							setPlayerLocation(ais[1].characterNum, ais[1].characterReplace, 0);
 						}
 						else
-							ais[1]._마신량 += Slots[ais[1]._위치]._잔추가;
-						status5.setText("Ai2 : 현재 "+ais[1]._마신량+" 잔 ");
-						if(players[0]._무인도 == 1) {
-							gamestatus2.setText(players[0]._이름+" 무인도에 갇혀 한턴 쉽니다.");
-							if(turn == (MainScreen._플레이어_수 + MainScreen._AI_수)) 
+							ais[1].characterDrink += Slots[ais[1].characterReplace].addGlassNum;
+						statusOfAI2TextField.setText("Ai2 : 현재 "+ais[1].characterDrink+" 잔 ");
+						if(players[0].characterIsIsland == true) {
+							gamestatusTextField2.setText(players[0].characterName+" 무인도에 갇혀 한턴 쉽니다.");
+							if(turn == (PlayerNum + AINum)) 
 								turn = 1;
 							else
 								turn += 1;
-							players[0]._무인도 = 0;
+							players[0].characterIsIsland = false;
 						}
 						else
-							gamestatus2.setText("p1 차례, 주사위를 굴려주세요");
+							gamestatusTextField2.setText("p1 차례, 주사위를 굴려주세요");
 					}
-					if(turn == (MainScreen._플레이어_수 + MainScreen._AI_수)) 
+					if(turn == (PlayerNum + AINum)) 
 						turn = 1;
 					else
 						turn += 1;
 					break;
 				case 6:
-					location6(a);
-					gamestatus1.setText(a+"이 나왔습니다."+Slots[ais[1]._위치]._벌칙내용);
-					if(ais[1]._위치 == 2 || ais[1]._위치 == 7)
-						ais[1]._마신량 += a;
-					else if(ais[1]._위치 == 3) 
-						ais[1]._무인도 = 1;
-					else if(ais[1]._위치 == 9) {
-						random1 = (int)(Math.random()*11);
-						ais[1]._위치 = random1;
-						location6(0);
+					ais[1].characterReplace = setPlayerLocation(ais[1].characterNum, ais[1].characterReplace, diceNum);
+					gamestatusTextField1.setText(Integer.toString(diceNum)+"! "+Slots[ais[1].characterReplace].penaltyContent);
+					if(ais[1].characterReplace == 2 || ais[1].characterReplace == 7)
+						ais[1].characterDrink += diceNum;
+					else if(ais[1].characterReplace == 3) 
+						ais[1].characterIsIsland = true;
+					else if(ais[1].characterReplace == 9) {
+						randomNum = (int)(Math.random()*11);
+						ais[1].characterReplace = randomNum;
+						setPlayerLocation(ais[1].characterNum, ais[1].characterReplace, 0);
 					}
 					else
-						ais[1]._마신량 += Slots[ais[1]._위치]._잔추가;
-					status5.setText("Ai2 : 현재 "+ais[1]._마신량+" 잔 ");
-					if(players[0]._무인도 == 1) {
-						gamestatus2.setText(players[0]._이름+" 무인도에 갇혀 한턴 쉽니다.");
-						if(turn == (MainScreen._플레이어_수 + MainScreen._AI_수)) 
+						ais[1].characterDrink += Slots[ais[1].characterReplace].addGlassNum;
+					statusOfAI2TextField.setText("Ai2 : 현재 "+ais[1].characterDrink+" 잔 ");
+					if(players[0].characterIsIsland == true) {
+						gamestatusTextField2.setText(players[0].characterName+" 무인도에 갇혀 한턴 쉽니다.");
+						if(turn == (PlayerNum + AINum)) 
 							turn = 1;
 						else
 							turn += 1;
-						players[0]._무인도 = 0;
+						players[0].characterIsIsland = false;
 					}
 					else
-						gamestatus2.setText("p1 차례, 주사위를 굴려주세요");
-					if(turn == (MainScreen._플레이어_수 + MainScreen._AI_수)) 
+						gamestatusTextField2.setText("p1 차례, 주사위를 굴려주세요");
+					if(turn == (PlayerNum + AINum)) 
 						turn = 1;
 					else
 						turn += 1;
@@ -1673,47 +1432,254 @@ class MainGame implements Runnable{
 				
 			}
 		});
-		exit.addActionListener(new ActionListener() { // 백 버튼  동작 설정
+		exitButton.addActionListener(new ActionListener() { // 백 버튼  동작 설정
 			public void actionPerformed(ActionEvent e) {
 				System.exit(0);
 			}});
 	}	
-	public static void saveGameResult() {
-		FileOutputStream f_stream = null;
+
+	public int dice() {
+		diceNumOneLabel.setVisible(false);
+		diceNumTwoLabel.setVisible(false);
+		diceNumThreeLabel.setVisible(false);
+		diceNumFourLabel.setVisible(false);
+		diceNumFiveLabel.setVisible(false);
+		diceNumSixLabel.setVisible(false);
+		diceImageLabel.setVisible(false);
 		
-		Player[] 플레이어저장 = new Player[MainScreen._플레이어_수];
-				
-		for(int i=0 ; i<= MainScreen._플레이어_수 ; i++)
-			{	플레이어저장[i] = MainGame.players[i] 	;	
-			
-		try {
-			
-			f_stream = new FileOutputStream("./플레이어_정보_객체.txt"); //배열인지 아닌지 모르겠음
-			
-			ObjectOutputStream d_stream = new ObjectOutputStream(f_stream);
-			
-			d_stream.writeObject(플레이어저장[i]);
-			
-			f_stream.close();
-			d_stream.close();
+	
+		int random = (int)(Math.random()*5+1);
+		switch(random) {
+		case 1: diceNumOneLabel.setVisible(true); break;
+		case 2: diceNumTwoLabel.setVisible(true); break;
+		case 3: diceNumThreeLabel.setVisible(true); break;
+		case 4: diceNumFourLabel.setVisible(true); break;
+		case 5: diceNumFiveLabel.setVisible(true); break;
+		case 6: diceNumSixLabel.setVisible(true); break;
+		default : break;
 		}
-		catch (FileNotFoundException e1) {
-			e1.printStackTrace();
-		}
-		catch (IOException e) {
-			e.printStackTrace();
-		}
+		return random;
+	}
+
+	int setPlayerLocation(int PlayerNum,int characterReplace,int diceNum) {
+		int characterNaxtReplace = characterReplace+diceNum;
+		if(characterNaxtReplace>11)
+			characterNaxtReplace -= 12;
+		switch(PlayerNum) {
+		case 1:
+			switch(characterNaxtReplace) {
+			case 0: player1IconLabel.setBounds(65, 175, 20, 20); Gamebord.add(player1IconLabel); 
+			player1IconLabel.setVisible(false);player1IconLabel.setVisible(true);break;
+			case 1: player1IconLabel.setBounds(255, 175, 20, 20); Gamebord.add(player1IconLabel );
+			player1IconLabel.setVisible(false);player1IconLabel.setVisible(true); break;
+			case 2: player1IconLabel.setBounds(445, 175, 20, 20); Gamebord.add(player1IconLabel );
+			player1IconLabel.setVisible(false);player1IconLabel.setVisible(true);  break;
+			case 3: player1IconLabel.setBounds(635, 175, 20, 20); Gamebord.add(player1IconLabel );
+			player1IconLabel.setVisible(false);player1IconLabel.setVisible(true); break;
+			case 4: player1IconLabel.setBounds(635, 340, 20, 20); Gamebord.add(player1IconLabel );
+			player1IconLabel.setVisible(false);player1IconLabel.setVisible(true); break;
+			case 5: player1IconLabel.setBounds(635, 505, 20, 20); Gamebord.add(player1IconLabel );
+			player1IconLabel.setVisible(false);player1IconLabel.setVisible(true); break;
+			case 6: player1IconLabel.setBounds(635, 670, 20, 20); Gamebord.add(player1IconLabel );
+			player1IconLabel.setVisible(false);player1IconLabel.setVisible(true); break;
+			case 7: player1IconLabel.setBounds(445, 670, 20, 20); Gamebord.add(player1IconLabel );
+			player1IconLabel.setVisible(false);player1IconLabel.setVisible(true); break;
+			case 8: player1IconLabel.setBounds(255, 670, 20, 20); Gamebord.add(player1IconLabel );
+			player1IconLabel.setVisible(false);player1IconLabel.setVisible(true); break;
+			case 9: player1IconLabel.setBounds(65, 670, 20, 20); Gamebord.add(player1IconLabel );
+			player1IconLabel.setVisible(false);player1IconLabel.setVisible(true); break;
+			case 10: player1IconLabel.setBounds(65, 505, 20, 20); Gamebord.add(player1IconLabel );
+			player1IconLabel.setVisible(false);player1IconLabel.setVisible(true); break;
+			case 11: player1IconLabel.setBounds(65, 340, 20, 20); Gamebord.add(player1IconLabel );
+			player1IconLabel.setVisible(false);player1IconLabel.setVisible(true); break;
+			default : break;
 			}
+			break;
+		case 2: 
+			switch(characterNaxtReplace) {
+			case 0: player2IconLabel.setBounds(90, 175, 20, 20);Gamebord.add(player2IconLabel);
+			player2IconLabel.setVisible(false);player2IconLabel.setVisible(true); break;
+			case 1: player2IconLabel.setBounds(280, 175, 20, 20);Gamebord.add(player2IconLabel);
+			player2IconLabel.setVisible(false);player2IconLabel.setVisible(true); break;
+			case 2: player2IconLabel.setBounds(470, 175, 20, 20);Gamebord.add(player2IconLabel);
+			player2IconLabel.setVisible(false);player2IconLabel.setVisible(true);  break;
+			case 3: player2IconLabel.setBounds(660, 175, 20, 20);Gamebord.add(player2IconLabel);
+			player2IconLabel.setVisible(false);player2IconLabel.setVisible(true); break;
+			case 4: player2IconLabel.setBounds(660, 340, 20, 20);Gamebord.add(player2IconLabel);
+			player2IconLabel.setVisible(false);player2IconLabel.setVisible(true); break;
+			case 5: player2IconLabel.setBounds(660, 505, 20, 20);Gamebord.add(player2IconLabel);
+			player2IconLabel.setVisible(false);player2IconLabel.setVisible(true); break;
+			case 6: player2IconLabel.setBounds(660, 670, 20, 20);Gamebord.add(player2IconLabel);
+			player2IconLabel.setVisible(false);player2IconLabel.setVisible(true); break;
+			case 7: player2IconLabel.setBounds(470, 670, 20, 20);Gamebord.add(player2IconLabel);
+			player2IconLabel.setVisible(false);player2IconLabel.setVisible(true); break;
+			case 8: player2IconLabel.setBounds(280, 670, 20, 20);Gamebord.add(player2IconLabel);
+			player2IconLabel.setVisible(false);player2IconLabel.setVisible(true); break;
+			case 9: player2IconLabel.setBounds(90, 670, 20, 20);Gamebord.add(player2IconLabel);
+			player2IconLabel.setVisible(false);player2IconLabel.setVisible(true); break;
+			case 10: player2IconLabel.setBounds(90, 505, 20, 20);Gamebord.add(player2IconLabel);
+			player2IconLabel.setVisible(false);player2IconLabel.setVisible(true);break;
+			case 11: player2IconLabel.setBounds(90, 340, 20, 20);Gamebord.add(player2IconLabel);
+			player2IconLabel.setVisible(false);player2IconLabel.setVisible(true); break;
+			default : break;
+			}
+			break;
+		case 3:
+			switch(characterNaxtReplace) {
+			case 0: player3IconLabel.setBounds(115, 175, 20, 20);Gamebord.add(player3IconLabel);
+			player3IconLabel.setVisible(false);player3IconLabel.setVisible(true); break;
+			case 1: player3IconLabel.setBounds(305, 175, 20, 20);Gamebord.add(player3IconLabel); 
+			player3IconLabel.setVisible(false);player3IconLabel.setVisible(true);break;
+			case 2: player3IconLabel.setBounds(495, 175, 20, 20);Gamebord.add(player3IconLabel);
+			player3IconLabel.setVisible(false);player3IconLabel.setVisible(true);  break;
+			case 3: player3IconLabel.setBounds(685, 175, 20, 20);Gamebord.add(player3IconLabel);
+			player3IconLabel.setVisible(false);player3IconLabel.setVisible(true); break;
+			case 4: player3IconLabel.setBounds(685, 340, 20, 20);Gamebord.add(player3IconLabel); 
+			player3IconLabel.setVisible(false);player3IconLabel.setVisible(true);break;
+			case 5: player3IconLabel.setBounds(685, 505, 20, 20);Gamebord.add(player3IconLabel);
+			player3IconLabel.setVisible(false);player3IconLabel.setVisible(true); break;
+			case 6: player3IconLabel.setBounds(685, 670, 20, 20);Gamebord.add(player3IconLabel);
+			player3IconLabel.setVisible(false);player3IconLabel.setVisible(true); break;
+			case 7: player3IconLabel.setBounds(495, 670, 20, 20);Gamebord.add(player3IconLabel);
+			player3IconLabel.setVisible(false);player3IconLabel.setVisible(true); break;
+			case 8: player3IconLabel.setBounds(305, 670, 20, 20);Gamebord.add(player3IconLabel);
+			player3IconLabel.setVisible(false);player3IconLabel.setVisible(true); break;
+			case 9: player3IconLabel.setBounds(115, 670, 20, 20);Gamebord.add(player3IconLabel);
+			player3IconLabel.setVisible(false);player3IconLabel.setVisible(true); break;
+			case 10: player3IconLabel.setBounds(115, 505, 20, 20);Gamebord.add(player3IconLabel);
+			player3IconLabel.setVisible(false);player3IconLabel.setVisible(true); break;
+			case 11: player3IconLabel.setBounds(115, 340, 20, 20);Gamebord.add(player3IconLabel);
+			player3IconLabel.setVisible(false);player3IconLabel.setVisible(true); break;
+			default : break;
+			}
+			break;
+		case 4: 
+			switch(characterNaxtReplace) {
+			case 0: player4IconLabel.setBounds(140, 175, 20, 20);Gamebord.add(player4IconLabel); 
+			player4IconLabel.setVisible(false);player4IconLabel.setVisible(true); break;
+			case 1: player4IconLabel.setBounds(330, 175, 20, 20);Gamebord.add(player4IconLabel); 
+			player4IconLabel.setVisible(false);player4IconLabel.setVisible(true); break;
+			case 2: player4IconLabel.setBounds(520, 175, 20, 20);Gamebord.add(player4IconLabel); 
+			player4IconLabel.setVisible(false);player4IconLabel.setVisible(true); break;
+			case 3: player4IconLabel.setBounds(710, 175, 20, 20);Gamebord.add(player4IconLabel); 
+			player4IconLabel.setVisible(false);player4IconLabel.setVisible(true); break;
+			case 4: player4IconLabel.setBounds(710, 340, 20, 20);Gamebord.add(player4IconLabel); 
+			player4IconLabel.setVisible(false);player4IconLabel.setVisible(true); break;
+			case 5: player4IconLabel.setBounds(710, 505, 20, 20);Gamebord.add(player4IconLabel); 
+			player4IconLabel.setVisible(false);player4IconLabel.setVisible(true); break;
+			case 6: player4IconLabel.setBounds(710, 670, 20, 20);Gamebord.add(player4IconLabel);  
+			player4IconLabel.setVisible(false);player4IconLabel.setVisible(true);break;
+			case 7: player4IconLabel.setBounds(520, 670, 20, 20);Gamebord.add(player4IconLabel); 
+			player4IconLabel.setVisible(false);player4IconLabel.setVisible(true); break;
+			case 8: player4IconLabel.setBounds(330, 670, 20, 20);Gamebord.add(player4IconLabel); 
+			player4IconLabel.setVisible(false);player4IconLabel.setVisible(true); break;
+			case 9: player4IconLabel.setBounds(140, 670, 20, 20);Gamebord.add(player4IconLabel); 
+			player4IconLabel.setVisible(false);player4IconLabel.setVisible(true); break;
+			case 10: player4IconLabel.setBounds(140, 505, 20, 20);Gamebord.add(player4IconLabel); 
+			player4IconLabel.setVisible(false);player4IconLabel.setVisible(true); break;
+			case 11: player4IconLabel.setBounds(140, 340, 20, 20);Gamebord.add(player4IconLabel); 
+			player4IconLabel.setVisible(false);player4IconLabel.setVisible(true); break;
+			default : break;
+			}
+			break;
+		case 5: 
+			switch(characterNaxtReplace) {
+			case 0: AI1IconLabel.setBounds(165, 175, 20, 20);Gamebord.add(AI1IconLabel); 
+			AI1IconLabel.setVisible(false);AI1IconLabel.setVisible(true); break;
+			case 1: AI1IconLabel.setBounds(355, 175, 20, 20);Gamebord.add(AI1IconLabel);
+			AI1IconLabel.setVisible(false);AI1IconLabel.setVisible(true);  break;
+			case 2: AI1IconLabel.setBounds(545, 175, 20, 20);Gamebord.add(AI1IconLabel);
+			AI1IconLabel.setVisible(false);AI1IconLabel.setVisible(true);  break;
+			case 3: AI1IconLabel.setBounds(735, 175, 20, 20);Gamebord.add(AI1IconLabel);
+			AI1IconLabel.setVisible(false);AI1IconLabel.setVisible(true);  break;
+			case 4: AI1IconLabel.setBounds(735, 340, 20, 20);Gamebord.add(AI1IconLabel);
+			AI1IconLabel.setVisible(false);AI1IconLabel.setVisible(true);  break;
+			case 5: AI1IconLabel.setBounds(735, 505, 20, 20);Gamebord.add(AI1IconLabel);
+			AI1IconLabel.setVisible(false);AI1IconLabel.setVisible(true);  break;
+			case 6: AI1IconLabel.setBounds(735, 670, 20, 20);Gamebord.add(AI1IconLabel);
+			AI1IconLabel.setVisible(false);AI1IconLabel.setVisible(true);  break;
+			case 7: AI1IconLabel.setBounds(545, 670, 20, 20);Gamebord.add(AI1IconLabel);
+			AI1IconLabel.setVisible(false);AI1IconLabel.setVisible(true);  break;
+			case 8: AI1IconLabel.setBounds(355, 670, 20, 20);Gamebord.add(AI1IconLabel);
+			AI1IconLabel.setVisible(false);AI1IconLabel.setVisible(true);  break;
+			case 9: AI1IconLabel.setBounds(165, 670, 20, 20);Gamebord.add(AI1IconLabel);
+			AI1IconLabel.setVisible(false);AI1IconLabel.setVisible(true);  break;
+			case 10: AI1IconLabel.setBounds(165, 505, 20, 20);Gamebord.add(AI1IconLabel); 
+			AI1IconLabel.setVisible(false);AI1IconLabel.setVisible(true); break;
+			case 11: AI1IconLabel.setBounds(165, 340, 20, 20);Gamebord.add(AI1IconLabel); 
+			AI1IconLabel.setVisible(false);AI1IconLabel.setVisible(true); ;break;
+			default : break;
+			}
+			break;
+		case 6:
+			switch(characterNaxtReplace) {
+			case 0: AI2IconLabel.setBounds(190, 175, 20, 20);Gamebord.add(AI2IconLabel);
+			AI2IconLabel.setVisible(false);AI2IconLabel.setVisible(true);   break;
+			case 1: AI2IconLabel.setBounds(380, 175, 20, 20);Gamebord.add(AI2IconLabel);
+			AI2IconLabel.setVisible(false);AI2IconLabel.setVisible(true); break;
+			case 2: AI2IconLabel.setBounds(570, 175, 20, 20);Gamebord.add(AI2IconLabel);
+			AI2IconLabel.setVisible(false);AI2IconLabel.setVisible(true); break;
+			case 3: AI2IconLabel.setBounds(760, 175, 20, 20);Gamebord.add(AI2IconLabel);
+			AI2IconLabel.setVisible(false);AI2IconLabel.setVisible(true); break;
+			case 4: AI2IconLabel.setBounds(760, 340, 20, 20);Gamebord.add(AI2IconLabel);
+			AI2IconLabel.setVisible(false);AI2IconLabel.setVisible(true); break;
+			case 5: AI2IconLabel.setBounds(760, 505, 20, 20);Gamebord.add(AI2IconLabel);
+			AI2IconLabel.setVisible(false);AI2IconLabel.setVisible(true); break;
+			case 6: AI2IconLabel.setBounds(760, 670, 20, 20);Gamebord.add(AI2IconLabel);
+			AI2IconLabel.setVisible(false);AI2IconLabel.setVisible(true); break;
+			case 7: AI2IconLabel.setBounds(570, 670, 20, 20);Gamebord.add(AI2IconLabel); 
+			AI2IconLabel.setVisible(false);AI2IconLabel.setVisible(true);break;
+			case 8: AI2IconLabel.setBounds(380, 670, 20, 20);Gamebord.add(AI2IconLabel);
+			AI2IconLabel.setVisible(false);AI2IconLabel.setVisible(true); break;
+			case 9: AI2IconLabel.setBounds(190, 670, 20, 20);Gamebord.add(AI2IconLabel);
+			AI2IconLabel.setVisible(false);AI2IconLabel.setVisible(true); break;
+			case 10: AI2IconLabel.setBounds(190, 505, 20, 20);Gamebord.add(AI2IconLabel);
+			AI2IconLabel.setVisible(false);AI2IconLabel.setVisible(true); break;
+			case 11: AI2IconLabel.setBounds(190, 340, 20, 20);Gamebord.add(AI2IconLabel);
+			AI2IconLabel.setVisible(false);AI2IconLabel.setVisible(true); break;
+			default : break;
+			}
+			break;
+		default: break;
+		}
+		return characterNaxtReplace;
+		
+	}
+	public Boolean loseTest(Player[] players) {
+		Boolean flag = false;
+		for(int i = 0; i< PlayerNum ; i++) {
+			if(players[i].characterDrink > characterMaxGlass[i]) {
+				JTextField gamestatusTextField = new JTextField(players[i].characterName+"의 패배입니다");
+				gamestatusTextField.setBounds(810, 350, 175, 40);
+				Gamebord.add(gamestatusTextField);
+				diceRollingButton.setVisible(false);
+				exitButton.setVisible(true);
+				saveGameResult(players);
+				flag = true;
+			}
+		}
+		return flag;
+	}
+	public static void saveGameResult(Player[] players) {
+		try {
+			out = new FileWriter("score.txt", true);
+			for(int i=0;i<PlayerNum;i++) {
+				out.write(players[i].characterName);
+				out.write(":");
+				out.write(Integer.toString(players[i].characterDrink));
+				out.write(" ");
+			}
+            out.close();	
+		} catch (IOException e) {
+			System.out.println("IOException");
+		}
 	}
 }
 
-public class TermP {
+public class _1 {
 	
 	public static void main(String[] args) {
-		
-		MainScreen a = new MainScreen();
-		a.seeMainScreen();
-		
+		new MainScreen();
 	}
 		
 }
